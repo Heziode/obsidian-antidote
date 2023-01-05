@@ -138,6 +138,7 @@ export class SimpleAgentConnectix {
     if (!existsSync(path as PathLike)) {
       throw Error('Connectix Agent not found');
     }
+    let AgentConsole = require('child_process').spawn(path, ['--api']);
 
     let Promesse = new Promise<boolean>((resolve) => {
       AgentConsole.stdout.on('data', (data: any) => {
