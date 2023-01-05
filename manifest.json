@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-antidote",
+  "name": "Antidote",
+  "version": "0.0.1",
+  "minAppVersion": "0.15.0",
+  "description": "A powerful grammar checker",
+  "author": "Heziode",
+  "authorUrl": "https://github.com/Heziode",
+  "isDesktopOnly": true
+}

@@ -1,0 +1,10 @@
+{
+  "settings.title": "Antidote Settings",
+  "settings.donation": "If this plugin is valuable to you, you can help support the maintainer by using one of the buttons below:",
+  "settings.dictionary.title": "Add Dictionary Button",
+  "settings.guide.title": "Add Guide Button",
+  "sidebar.corrector.label": "Antidote - Corrector",
+  "sidebar.dictionary.label": "Antidote - Dictionary",
+  "sidebar.guide.label": "Antidote - Guide",
+  "error.antidote_not_found": "Unable to communicate with Connectix Agent (Antidote)"
+}

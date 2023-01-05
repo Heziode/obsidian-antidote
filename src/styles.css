@@ -1,0 +1,47 @@
+.spin-loading > svg {
+  animation-name: spin;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hide {
+  display: none;
+}
+
+.antidote-settings > .setting-item {
+  border: 0px;
+  padding-bottom: 0;
+}
+
+.antidote-settings summary {
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.donation-section {
+  width: 70%;
+  margin: 0 auto;
+  text-align: center;
+  margin-top: 2em;
+  padding-top: 2em;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.donate-button {
+  margin: auto;
+}
+
+.donate-button > svg {
+  margin: auto;
+  height: 3em;
+}

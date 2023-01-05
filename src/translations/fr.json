@@ -1,0 +1,10 @@
+{
+  "settings.title": "Paramètres d'Antidote",
+  "settings.donation": "Si ce plugin vous est utile, vous pouvez aider à soutenir le mainteneur en utilisant un des boutons ci-dessous :",
+  "settings.dictionary.title": "Ajouter le bouton Dictionnaire",
+  "settings.guide.title": "Ajouter le bouton Guides",
+  "sidebar.corrector.label": "Antidote - Correcteur",
+  "sidebar.dictionary.label": "Antidote - Dictionnaire",
+  "sidebar.guide.label": "Antidote - Guides",
+  "error.antidote_not_found": "Impossible de communiquer avec l'Agent Connectix (Antidote)"
+}

@@ -1,0 +1,16 @@
+{
+  "plugins": [
+    [
+      "conventional-commits",
+      {
+        "preset": "angular"
+      }
+    ],
+    [
+      "obsidian",
+      {
+        "dir": "./dist"
+      }
+    ]
+  ]
+}
