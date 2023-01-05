@@ -2,7 +2,7 @@
 
 This Obsidian plugin is an unofficial integration of [Antidote](https://www.antidote.info/), a powerful grammar checker.
 
-Antidote support these languages:
+Antidote supports these languages:
 
 - English
 - French
@@ -23,7 +23,7 @@ Download `main.js`, `manifest.json`, `styles.css` from the [latest release](http
 
 ## How to use
 
-This plugin add 3 icons into the sidebar:
+This plugin adds 3 icons into the sidebar:
 
 - The check corresponding to the Antidote corrector
 - The green book corresponding to the Antidote dictionary
