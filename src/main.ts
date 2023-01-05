@@ -191,8 +191,13 @@ export default class AntidotePlugin extends Plugin {
 
   public showStatusBarIcons() {
     this.correctorStatusBar.removeClass('hide');
-    this.dictionaryStatusBar.removeClass('hide');
-    this.guidesStatusBar.removeClass('hide');
+    if (this.settings.showDictionaryIcon) {
+      this.dictionaryStatusBar.removeClass('hide');
+    }
+
+    if (this.settings.showGuideIcon) {
+      this.guidesStatusBar.removeClass('hide');
+    }
   }
 
   public hideStatusBarIcons() {
