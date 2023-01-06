@@ -23,7 +23,7 @@ Download `main.js`, `manifest.json`, `styles.css` from the [latest release](http
 
 ## How to use
 
-This plugin adds 3 icons into the sidebar:
+This plugin adds 3 icons into the status bar:
 
 - The check corresponding to the Antidote corrector
 - The green book corresponding to the Antidote dictionary
