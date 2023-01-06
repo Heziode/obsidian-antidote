@@ -1,5 +1,6 @@
 import {
   App,
+  getIconIds,
   MarkdownView,
   Notice,
   Plugin,
@@ -24,6 +25,7 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
       AcMap.set(
         td,
         new AgentConnectix(
+          'obsidian',
           new AgentTexteurAPI(
             (td.view.editor as any).cm,
             td.view,
@@ -71,6 +73,13 @@ export default class AntidotePlugin extends Plugin {
       if (!this.app.workspace.activeEditor) {
         return;
       }
+
+      // console.log(
+      //   'getValue: ',
+      //   this.app.workspace.activeEditor.editor!.getValue()
+      // );
+
+      // console.log('getIconIds: ', getIconIds());
 
       this.handleStatusBarClick();
     });
@@ -261,8 +270,13 @@ export default class AntidotePlugin extends Plugin {
       try {
         const AC = DonneAgentConnectixPourDocument(activeLeaf);
         try {
+          console.log('AC init');
+
           await AC.Initialise();
+          console.log('AC initialized');
         } catch (e) {
+          console.log('ac ERROR');
+
           new Notice(t('error.antidote_not_found'));
           return;
         }
