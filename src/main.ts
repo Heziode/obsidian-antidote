@@ -13,8 +13,7 @@ import { AgentTexteurAPI } from './ObsidianTexteurAPI';
 import { buyMeACoffee } from './assets/BuyMeACoffee';
 import { paypal } from './assets/PayPal';
 import { t } from './i18n';
-import { AgentConnectix } from './lib/AgentConnectix';
-import { SimpleAgentConnectix } from './lib/SimpleAgentConnectix';
+import { AgentConnectix } from './lib/antidote/AgentConnectix';
 
 const AcMap: Map<WorkspaceLeaf, AgentConnectix> = new Map();
 
@@ -24,6 +23,7 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
       AcMap.set(
         td,
         new AgentConnectix(
+          'obsidian',
           new AgentTexteurAPI(
             (td.view.editor as any).cm,
             td.view,
@@ -38,7 +38,7 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
   throw Error('Unknown document');
 }
 
-const simpleAgent = new SimpleAgentConnectix();
+const simpleAgent = new AgentConnectix('obsidian');
 
 // Remember to rename these classes and interfaces!
 
@@ -248,10 +248,6 @@ export default class AntidotePlugin extends Plugin {
   }
 
   private readonly handleStatusBarClick = async () => {
-    const statusBarRect =
-      this.correctorStatusBar.parentElement?.getBoundingClientRect();
-    const statusBarIconRect = this.correctorStatusBar.getBoundingClientRect();
-
     const activeLeaf = this.app.workspace.getLeaf();
 
     if (

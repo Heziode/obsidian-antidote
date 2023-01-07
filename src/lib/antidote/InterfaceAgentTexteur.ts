@@ -1,17 +1,44 @@
-import { AgentConnectix } from './AgentConnectix';
-
+import { randomBytes } from 'crypto';
 export abstract class AgentTexteur {
-  private connectix: AgentConnectix;
+  private guid: string;
 
   constructor() {
-    this.connectix = new AgentConnectix(this);
+    this.guid = randomBytes(16).toString('base64').slice(0, 16);
   }
 
   abstract Initialise(): void;
 
+  DonneIDCommunication() {
+    return this.guid;
+  }
+
+  DonneSiSynchroniseSurAppelDesOutils() {
+    return false;
+  }
+
+  EstTexteurDAntidote() {
+    return false;
+  }
+  JePeuxCorrigerSansSelection() {
+    return false;
+  }
+
+  RompsLienCorrecteur() {}
+  RompsLienTexteur() {}
+  SelectionneApresRemplace(data: any) {}
+  SynchroFinie() {}
+  TexteModifieDepuisSynchro() {
+    return true;
+  }
+
   //Information sur le texteur
   abstract DonneRetourDeCharriot(): string;
   abstract DonneTitreDocument(): string;
+  abstract DonneSelectionDansSonContexte(): Promise<{
+    texte: string;
+    debutSelection: number;
+    finSelection: number;
+  }>;
   abstract DonneCheminDocument(): string;
   EspaceFineDisponible(): boolean {
     return false;
@@ -19,7 +46,18 @@ export abstract class AgentTexteur {
   JeTraiteLesInsecables(): boolean {
     return true;
   }
+  abstract DocEstMort(): boolean;
   abstract PermetsRetourDeCharriot(): boolean;
+  abstract DonneDebutSelection(): Promise<number>;
+  abstract RemplaceMot(valeur: string): Promise<void>;
+
+  DonneProgression() {
+    return 0;
+  }
+  InitPourCorrecteur() {}
+  InitPourOutils(a: boolean) {}
+  ReinitialisePourCorrecteur() {}
+  ReinitialisePourOutils() {}
 
   // Requête d'Antidote
   abstract DonneLesZonesACorriger(): Promise<ZoneDeTexte[]>;
@@ -46,6 +84,13 @@ export abstract class AgentTexteur {
     debut: number,
     fin: number
   ): void;
+
+  abstract DonneIdWSExpediteur(): string;
+  abstract DonneNomExpediteur(): string;
+
+  DonneNomTexteur() {
+    return 'obsidian';
+  }
 }
 
 export interface ZoneDeTexteJSONAPI {
@@ -79,13 +124,21 @@ export class ZoneDeTexte {
     else this.id = '';
   }
 
-  toJsonAPI(): ZoneDeTexteJSONAPI {
+  toJson(): { _dib30: string; _dib31: number; _dib32: number; _dib99: string } {
     return {
-      texte: this.texte,
-      positionSelectionDebut: this.selDebut,
-      positionSelectionFin: this.selFin,
-      idZone: this.id,
-      zoneEstEnFocus: true,
+      _dib30: Buffer.from(this.texte).toString('base64'),
+      _dib31: this.selDebut,
+      _dib32: this.selFin,
+      _dib99: Buffer.from(this.id).toString('base64'),
     };
+  }
+
+  static fromJson(jsonObject: any) {
+    return new ZoneDeTexte(
+      jsonObject.textEncoded,
+      jsonObject.selectionStart,
+      jsonObject.selectionEnd,
+      jsonObject.idEncoded
+    );
   }
 }
