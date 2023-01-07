@@ -29,7 +29,7 @@ This plugin adds 3 icons into the status bar:
 - The green book corresponding to the Antidote dictionary
 - The orange book corresponding to the Antidote guide
 
-![](./assets/obsidian-sidebar.png)
+![](./assets/obsidian-statusbar.png)
 
 You can show or hide Dictionary and Guide from settings.
 
