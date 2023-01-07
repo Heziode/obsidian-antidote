@@ -1,6 +1,5 @@
 import {
   App,
-  getIconIds,
   MarkdownView,
   Notice,
   Plugin,
@@ -14,8 +13,7 @@ import { AgentTexteurAPI } from './ObsidianTexteurAPI';
 import { buyMeACoffee } from './assets/BuyMeACoffee';
 import { paypal } from './assets/PayPal';
 import { t } from './i18n';
-import { AgentConnectix } from './lib/AgentConnectix';
-import { SimpleAgentConnectix } from './lib/SimpleAgentConnectix';
+import { AgentConnectix } from './lib/antidote/AgentConnectix';
 
 const AcMap: Map<WorkspaceLeaf, AgentConnectix> = new Map();
 
@@ -40,7 +38,7 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
   throw Error('Unknown document');
 }
 
-const simpleAgent = new SimpleAgentConnectix();
+const simpleAgent = new AgentConnectix('obsidian');
 
 // Remember to rename these classes and interfaces!
 
@@ -73,13 +71,6 @@ export default class AntidotePlugin extends Plugin {
       if (!this.app.workspace.activeEditor) {
         return;
       }
-
-      // console.log(
-      //   'getValue: ',
-      //   this.app.workspace.activeEditor.editor!.getValue()
-      // );
-
-      // console.log('getIconIds: ', getIconIds());
 
       this.handleStatusBarClick();
     });
@@ -257,10 +248,6 @@ export default class AntidotePlugin extends Plugin {
   }
 
   private readonly handleStatusBarClick = async () => {
-    const statusBarRect =
-      this.correctorStatusBar.parentElement?.getBoundingClientRect();
-    const statusBarIconRect = this.correctorStatusBar.getBoundingClientRect();
-
     const activeLeaf = this.app.workspace.getLeaf();
 
     if (
@@ -270,13 +257,8 @@ export default class AntidotePlugin extends Plugin {
       try {
         const AC = DonneAgentConnectixPourDocument(activeLeaf);
         try {
-          console.log('AC init');
-
           await AC.Initialise();
-          console.log('AC initialized');
         } catch (e) {
-          console.log('ac ERROR');
-
           new Notice(t('error.antidote_not_found'));
           return;
         }

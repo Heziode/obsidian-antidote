@@ -133,16 +133,6 @@ export class ZoneDeTexte {
     };
   }
 
-  toJsonAPI(): ZoneDeTexteJSONAPI {
-    return {
-      texte: this.texte,
-      positionSelectionDebut: this.selDebut,
-      positionSelectionFin: this.selFin,
-      idZone: this.id,
-      zoneEstEnFocus: true,
-    };
-  }
-
   static fromJson(jsonObject: any) {
     return new ZoneDeTexte(
       jsonObject.textEncoded,

@@ -39,9 +39,7 @@ export class AgentConnectix {
 
   private listePaquetsRecu: Array<string>;
 
-  constructor(nomTexteur: string, agent: agTexteur.AgentTexteur) {
-    console.log('constructeur de AgentConnectix:', nomTexteur, agent);
-
+  constructor(nomTexteur: string, agent?: agTexteur.AgentTexteur) {
     this.nomTexteur = nomTexteur;
     this.monAgent = agent;
     this.prefs = {} as JSON;
@@ -59,23 +57,16 @@ export class AgentConnectix {
   }
 
   LanceCorrecteur(): void {
-    // let laRequete = {
-    //   message: 'LanceOutil',
-    //   outilApi: 'Correcteur',
-    // };
-
     let laRequete = {
       _dib101: 'PluginTexteur',
-      _dib81: this.monAgent ? this.monAgent.DonneIdWSExpediteur() : undefined,
+      _dib81: this.monAgent?.DonneIdWSExpediteur(),
       _dib105: 'requete',
-      _dib106: !0,
+      _dib106: true,
       message: 'LanceOutil',
       outilApi: 'Correcteur',
-      _dib79: this.monAgent ? this.monAgent.DonneTitreDocument() : undefined,
-      _dib75: this.monAgent ? this.monAgent.DonneTitreDocument() : undefined,
-      nomExpediteur: this.monAgent
-        ? this.monAgent.DonneNomExpediteur()
-        : undefined,
+      _dib79: this.monAgent?.DonneTitreDocument(),
+      _dib75: this.monAgent?.DonneTitreDocument(),
+      nomExpediteur: this.monAgent?.DonneNomExpediteur(),
       versionPont: '2.0',
       versionIATMin: '1.0',
       versionIATMax: '1.1',
@@ -84,31 +75,47 @@ export class AgentConnectix {
     this.EnvoieMessage(JSON.stringify(laRequete));
   }
 
-  LanceDictionnaire(): void {
-    let laRequete = {
+  LanceDictionnaire() {
+    const message = {
+      _dib101: 'PluginTexteur',
+      _dib81: this.monAgent?.DonneIdWSExpediteur(),
+      _dib105: 'requete',
+      _dib106: true,
       message: 'LanceOutil',
-      outilApi: 'Dictionnaires',
+      outilApi: 'DictionnaireDernierChoisi',
+      _dib79: this.monAgent?.DonneTitreDocument(),
+      _dib75: this.monAgent?.DonneTitreDocument(),
+      nomExpediteur: this.monAgent?.DonneNomExpediteur(),
+      versionPont: '2.0',
+      versionIATMin: '1.0',
+      versionIATMax: '1.1',
     };
-    this.EnvoieMessage(JSON.stringify(laRequete));
+    this.EnvoieMessage(JSON.stringify(message));
   }
 
-  LanceGuide(): void {
-    let laRequete = {
+  LanceGuide() {
+    const message = {
+      _dib101: 'PluginTexteur',
+      _dib81: this.monAgent?.DonneIdWSExpediteur(),
+      _dib105: 'requete',
+      _dib106: true,
       message: 'LanceOutil',
-      outilApi: 'Guides',
+      outilApi: 'GuideDernierChoisi',
+      _dib79: this.monAgent?.DonneTitreDocument(),
+      _dib75: this.monAgent?.DonneTitreDocument(),
+      nomExpediteur: this.monAgent?.DonneNomExpediteur(),
+      versionPont: '2.0',
+      versionIATMin: '1.0',
+      versionIATMax: '1.1',
     };
-    this.EnvoieMessage(JSON.stringify(laRequete));
+    this.EnvoieMessage(JSON.stringify(message));
   }
 
   RepondARequeteTextePourOutils(data: any, textData: TextData) {
-    var t;
-    (data._dib105 = 'reponse'),
-      MetsTextePourOutilsDansJSON(data, textData),
-      (data._dib81 =
-        null === (t = this.monAgent) || void 0 === t
-          ? void 0
-          : t.DonneIdWSExpediteur()),
-      this.EnvoieMessage(JSON.stringify(data));
+    data._dib105 = 'reponse';
+    MetsTextePourOutilsDansJSON(data, textData);
+    data._dib81 = this.monAgent?.DonneIdWSExpediteur();
+    this.EnvoieMessage(JSON.stringify(data));
   }
 
   GereMessage(data: any) {
@@ -258,75 +265,6 @@ export class AgentConnectix {
     this.EnvoieMessage(JSON.stringify(donneesDeReponse));
   }
 
-  /**
-   * TODO: to be deleted
-   * @param data
-   */
-  private GereMessageOld(data: any) {
-    let laReponse: any = {};
-    laReponse.idMessage = data.idMessage;
-    if (data.message == 'init') {
-      laReponse.titreDocument = this.monAgent?.DonneTitreDocument();
-      laReponse.retourChariot = this.monAgent?.DonneRetourDeCharriot();
-      laReponse.permetRetourChariot = this.monAgent?.PermetsRetourDeCharriot();
-      laReponse.permetEspaceInsecables = this.monAgent?.JeTraiteLesInsecables();
-      laReponse.permetEspaceFin = this.monAgent?.EspaceFineDisponible();
-      laReponse.remplaceSansSelection = true;
-      this.EnvoieMessage(JSON.stringify(laReponse));
-    } else if (data.message == 'cheminDocument') {
-      laReponse.donnee = !this.monAgent?.DonneCheminDocument();
-      this.EnvoieMessage(JSON.stringify(laReponse));
-    } else if (data.message == 'docEstDisponible') {
-      laReponse.donnees = this.monAgent?.DocEstDisponible();
-
-      this.EnvoieMessage(JSON.stringify(laReponse));
-    } else if (data.message == 'donneZonesTexte') {
-      this.monAgent?.DonneLesZonesACorriger().then((lesZones) => {
-        let lesZonesEnJSON: agTexteur.ZoneDeTexteJSONAPI[] = new Array();
-
-        lesZones?.forEach((element) => {
-          lesZonesEnJSON.push(element.toJsonAPI());
-        });
-        laReponse.donnees = lesZonesEnJSON;
-        this.EnvoieMessage(JSON.stringify(laReponse));
-      });
-    } else if (data.message == 'editionPossible') {
-      let idZone: string = data.donnees.idZone;
-      let chaine: string = data.donnees.contexte;
-      let debut: number = data.donnees.positionDebut;
-      let fin: number = data.donnees.positionFin;
-
-      laReponse.donnees = this.monAgent?.PeutCorriger(
-        idZone,
-        debut,
-        fin,
-        chaine
-      );
-      this.EnvoieMessage(JSON.stringify(laReponse));
-    } else if (data.message == 'remplace') {
-      let idZone: string = data.donnees.idZone;
-      let chaine: string = data.donnees.nouvelleChaine;
-      let debut: number = data.donnees.positionRemplacementDebut;
-      let fin: number = data.donnees.positionRemplacementFin;
-
-      this.monAgent
-        ?.CorrigeDansTexteur(idZone, debut, fin, chaine, false)
-        .then((reponse) => {
-          this.monAgent?.MetsFocusSurLeDocument();
-          laReponse.donnees = true;
-          this.EnvoieMessage(JSON.stringify(laReponse));
-        });
-    } else if (data.message == 'selectionne') {
-      let idZone: string = data.donnees.idZone;
-      let debut: number = data.donnees.positionDebut;
-      let fin: number = data.donnees.positionFin;
-
-      this.monAgent?.SelectionneIntervalle(idZone, debut, fin);
-    } else if (data.message == 'retourneAuDocument') {
-      this.monAgent?.RetourneAuTexteur();
-    }
-  }
-
   private async DonnePathAgentConsole() {
     if (process.platform === 'darwin') {
       const plist = require('bplist-parser');
@@ -346,6 +284,7 @@ export class AgentConnectix {
       );
       return retour + 'AgentConnectixConsole.exe';
     }
+    return '';
   }
 
   private async InitWS() {
@@ -371,7 +310,7 @@ export class AgentConnectix {
   }
 
   private Digere(data: any) {
-    if (Object.hasOwnProperty.call(data, '_dib83')) {
+    if ('_dib83' in data) {
       let lesDonnees: string = data._dib84;
       let leNombrePaquet: number = data._dib85;
       let leNumeroPaquet: number = data._dib83;
@@ -394,15 +333,11 @@ export class AgentConnectix {
 
   private RecoisMessage(data: any) {
     let leMsg = JSON.parse(data);
-    console.log('RecoisMessage: ', leMsg);
-
     this.Digere(leMsg);
   }
 
   private EnvoiePaquet(paquet: string) {
     if (this.ws.readyState == this.ws.OPEN) {
-      console.log('EnvoiePaquet: ', JSON.parse(paquet));
-
       this.ws.send(paquet);
     }
   }
@@ -410,46 +345,32 @@ export class AgentConnectix {
   RepondARequete(data: any, requestType?: any) {
     data._dib105 = 'reponse';
     data._dib29 = requestType;
-    data._dib81 = this.monAgent
-      ? this.monAgent.DonneIdWSExpediteur()
-      : undefined;
+    data._dib81 = this.monAgent?.DonneIdWSExpediteur();
     this.EnvoieMessage(JSON.stringify(data));
   }
 
   RepondAInitialise(responseData: any, requestType: any) {
     responseData._dib105 = 'reponse';
     responseData._dib29 = requestType;
-    responseData._dib75 = this.monAgent
-      ? Buffer.from(this.monAgent.DonneTitreDocument()).toString('base64')
-      : undefined;
-    responseData._dib77 = this.monAgent
-      ? Buffer.from(this.monAgent.DonneRetourDeCharriot()).toString('base64')
-      : undefined;
-    responseData._dib78 = this.monAgent
-      ? this.monAgent.PermetsRetourDeCharriot()
-      : undefined;
-    responseData._dib68 = this.monAgent
-      ? this.monAgent.EspaceFineDisponible()
-      : undefined;
-    responseData._dib72 = this.monAgent
-      ? this.monAgent.JeTraiteLesInsecables()
-      : undefined;
     responseData._dib93 = true;
-    responseData._dib81 = this.monAgent
-      ? this.monAgent.DonneIdWSExpediteur()
-      : undefined;
+
+    if (this.monAgent) {
+      responseData._dib75 = Buffer.from(
+        this.monAgent.DonneTitreDocument()
+      ).toString('base64');
+      responseData._dib77 = Buffer.from(
+        this.monAgent.DonneRetourDeCharriot()
+      ).toString('base64');
+      responseData._dib78 = this.monAgent.PermetsRetourDeCharriot();
+      responseData._dib68 = this.monAgent.EspaceFineDisponible();
+      responseData._dib72 = this.monAgent.JeTraiteLesInsecables();
+      responseData._dib81 = this.monAgent.DonneIdWSExpediteur();
+    }
+
     this.EnvoieMessage(JSON.stringify(responseData));
   }
 
   private EnvoieMessage(msg: string) {
-    // let laRequete = {
-    //   idPaquet: 0,
-    //   totalPaquet: 1,
-    //   donnees: msg,
-    // };
-
-    // this.EnvoiePaquet(JSON.stringify(laRequete));
-
     let msgSize = msg.length;
     if (msgSize > TAILLE_MAX_MESSAGE) {
       let msgBase64 = Buffer.from(msg).toString('base64');
@@ -495,10 +416,9 @@ export class AgentConnectix {
 
   private async ObtiensReglages() {
     let path = await this.DonnePathAgentConsole();
-    if (!existsSync(path as PathLike)) {
+    if (path === '' || !existsSync(path as PathLike)) {
       throw Error('Connectix Agent not found');
     }
-    console.log('path: ', path);
 
     let AgentConsole = require('child_process').spawn(path);
 
@@ -508,13 +428,9 @@ export class AgentConnectix {
         str = str.substring(str.indexOf('{'), str.length);
 
         if (str === '{}') {
-          console.log('this.nomTexteur: ', this.nomTexteur);
-
           AgentConsole.stdin.write(this.nomTexteur);
         } else {
           this.prefs = JSON.parse(str);
-          console.log('prefs: ', this.prefs);
-
           this.InitWS().then((retour) => {
             resolve(retour);
           });

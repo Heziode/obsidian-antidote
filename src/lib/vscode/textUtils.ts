@@ -1,10 +1,11 @@
-import { EditorPosition, MarkdownView } from 'obsidian';
-import { Range, Position } from './rangeUtils';
 /**
  * This file is translated from VS Code.
  *
  * {@link https://github.com/microsoft/vscode/blob/98edc012088772eab301d01db92ba48dae03e148/src/vs/editor/common/core/wordHelper.ts}
  */
+
+import { EditorPosition, MarkdownView } from 'obsidian';
+import { Range, Position } from './rangeUtils';
 
 export const USUAL_WORD_SEPARATORS = '`~!@#$%^&*()-=+[{]}\\|;:\'",.<>/?';
 

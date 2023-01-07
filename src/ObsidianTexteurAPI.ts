@@ -1,29 +1,26 @@
 import { createHash } from 'crypto';
-import * as path from 'path';
 import { parse as parseURL } from 'url';
 
 import { EditorView } from '@codemirror/view';
 import {
   EditorPosition,
-  EditorRange,
   EditorSelection,
-  FileSystemAdapter,
   MarkdownView,
   TFile,
   WorkspaceLeaf,
 } from 'obsidian';
 
-import { AgentTexteur, ZoneDeTexte } from './lib/InterfaceAgentTexteur';
-import { Range, Selection } from './lib/rangeUtils';
-import { getWordRangeAtPosition } from './lib/textUtils';
+import {
+  AgentTexteur,
+  ZoneDeTexte,
+} from './lib/antidote/InterfaceAgentTexteur';
+import { Range, Selection } from './lib/vscode/rangeUtils';
+import { getWordRangeAtPosition } from './lib/vscode/textUtils';
 
 export class AgentTexteurAPI extends AgentTexteur {
   private edView: EditorView;
   private mdView: MarkdownView;
   private documentPath: string;
-  private defaultFrom = 0;
-  private defaultTo = Infinity;
-  private defaultOffset = 0;
 
   constructor(edView: EditorView, mdView: MarkdownView, documentPath: string) {
     super();
@@ -33,62 +30,8 @@ export class AgentTexteurAPI extends AgentTexteur {
     this.documentPath = documentPath;
   }
 
-  Initialise(): void {
-    this.defaultFrom = 0;
-    this.defaultTo = this.mdView.data.length - 1;
-
-    const selection = this.edView.state.selection.main;
-
-    if (selection && selection.from !== selection.to) {
-      this.defaultFrom = selection.from;
-      this.defaultTo = selection.to;
-    }
-    this.defaultOffset = this.defaultFrom;
-  }
-
-  private ObtenirIntervalleDocument(
-    from?: number,
-    to?: number,
-    takeIntoAccountInterval = true
-  ): {
-    text: string;
-    offset: number;
-    isRange: boolean;
-    rangeFrom: number;
-    rangeTo: number;
-  } {
-    // let selection;
-    // if (takeIntoAccountInterval) {
-    //   selection = this.edView.state.selection.main;
-    // }
-
-    let text = this.mdView.data;
-    let offset = 0;
-    let isRange = false;
-    let rangeFrom = 0;
-    let rangeTo = 0;
-
-    // if (from === undefined && selection && selection.from !== selection.to) {
-    //   from = selection.from;
-    //   to = selection.to;
-    // }
-
-    if (from === undefined && to === undefined) {
-      from = this.defaultFrom;
-      to = this.defaultTo;
-      offset = this.defaultOffset;
-    }
-
-    if (from !== undefined && to !== undefined) {
-      text = this.edView.state.sliceDoc(from, to);
-      offset = from;
-      rangeFrom = from;
-      rangeTo = to;
-      isRange = true;
-    }
-
-    return { text, offset, rangeFrom, rangeTo, isRange };
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  Initialise(): void {}
 
   private PositionAbsolue(pos: EditorPosition): number {
     return this.mdView.editor.posToOffset(pos);
@@ -128,9 +71,7 @@ export class AgentTexteurAPI extends AgentTexteur {
     );
 
     if (endSentenceRange) {
-      range = startSentenceRange
-        ? startSentenceRange.union(endSentenceRange)
-        : undefined;
+      range = startSentenceRange?.union(endSentenceRange);
     }
 
     selectedText = range
@@ -162,7 +103,7 @@ export class AgentTexteurAPI extends AgentTexteur {
   }
 
   DonneTitreDocument(): string {
-    return this.mdView.file.basename + '.md';
+    return this.mdView.file.name;
   }
 
   DonneCheminDocument(): string {
@@ -171,12 +112,6 @@ export class AgentTexteurAPI extends AgentTexteur {
       parseURL(this.mdView.app.vault.getResourcePath(this.mdView.file))
         .pathname!
     );
-    // const adapter = this.mdView.file.vault.adapter;
-    // let baseName = '';
-    // if (adapter instanceof FileSystemAdapter) {
-    //   baseName = adapter.getBasePath();
-    // }
-    // return path.join(baseName, this.mdView.file.name);
   }
 
   PermetsRetourDeCharriot(): boolean {
@@ -260,15 +195,6 @@ export class AgentTexteurAPI extends AgentTexteur {
       this.mdView.editor.replaceRange(laChaine, posDebut, posFin);
       resolve(true);
     });
-    // this.MetsFocusSurLeDocument();
-    // return new Promise<boolean>((resolve) => {
-    //   this.mdView.editor.replaceRange(
-    //     laChaine,
-    //     this.mdView.editor.offsetToPos(leDebut + this.defaultOffset),
-    //     this.mdView.editor.offsetToPos(laFin + this.defaultOffset)
-    //   );
-    //   resolve(true);
-    // });
   }
 
   RetourneAuTexteur(): void {
@@ -299,8 +225,8 @@ export class AgentTexteurAPI extends AgentTexteur {
   SelectionneIntervalle(_leIDZone: string, debut: number, fin: number): void {
     this.MetsFocusSurLeDocument();
     this.mdView.editor.setSelection(
-      this.PositionVS(debut + this.defaultOffset),
-      this.PositionVS(fin + this.defaultOffset)
+      this.PositionVS(debut),
+      this.PositionVS(fin)
     );
   }
 
