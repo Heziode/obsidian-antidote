@@ -1,6 +1,7 @@
 {
   "settings.title": "Antidote Settings",
   "settings.donation": "If this plugin is valuable to you, you can help support the maintainer by using one of the buttons below:",
+  "settings.corrector.title": "Add Corrector Button",
   "settings.dictionary.title": "Add Dictionary Button",
   "settings.guide.title": "Add Guide Button",
   "sidebar.corrector.label": "Antidote - Corrector",

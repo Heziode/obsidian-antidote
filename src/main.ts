@@ -43,11 +43,13 @@ const simpleAgent = new AgentConnectix('obsidian');
 // Remember to rename these classes and interfaces!
 
 interface AntidotePluginSettings {
+  showCorrectorIcon: boolean;
   showDictionaryIcon: boolean;
   showGuideIcon: boolean;
 }
 
 const DEFAULT_SETTINGS: AntidotePluginSettings = {
+  showCorrectorIcon: true,
   showDictionaryIcon: true,
   showGuideIcon: true,
 };
@@ -190,6 +192,10 @@ export default class AntidotePlugin extends Plugin {
   }
 
   public showStatusBarIcons() {
+    if (!this.settings.showCorrectorIcon) {
+      this.hideStatusBarIcons();
+      return;
+    }
     this.correctorStatusBar.removeClass('hide');
     if (this.settings.showDictionaryIcon) {
       this.dictionaryStatusBar.removeClass('hide');
@@ -287,6 +293,18 @@ class SettingTab extends PluginSettingTab {
     const summary = containerEl.createEl('summary');
     new Setting(summary).setHeading().setName(t('settings.title'));
     summary.createDiv('collapser').createDiv('handle');
+
+    new Setting(containerEl)
+      .setName(t('settings.corrector.title'))
+      .addToggle((t) => {
+        t.setValue(this.plugin.settings.showCorrectorIcon).onChange(
+          async (value) => {
+            this.plugin.settings.showCorrectorIcon = value;
+            await this.plugin.saveSettings();
+            this.plugin.showOrHideIcons();
+          }
+        );
+      });
 
     new Setting(containerEl)
       .setName(t('settings.dictionary.title'))
