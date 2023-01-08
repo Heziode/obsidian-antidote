@@ -7,5 +7,8 @@
   "sidebar.corrector.label": "Antidote - Corrector",
   "sidebar.dictionary.label": "Antidote - Dictionary",
   "sidebar.guide.label": "Antidote - Guide",
+  "command.corrector.label": "Correct with Antidote",
+  "command.dictionary.label": "Open Antidote dictionary",
+  "command.guide.label": "Open Antidote guide",
   "error.antidote_not_found": "Unable to communicate with Connectix Agent (Antidote)"
 }

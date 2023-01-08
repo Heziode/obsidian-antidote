@@ -130,6 +130,8 @@ export default class AntidotePlugin extends Plugin {
         });
     });
 
+    this.showOrHideIcons();
+
     // Events //
 
     this.registerEvent(
@@ -160,7 +162,45 @@ export default class AntidotePlugin extends Plugin {
       })
     );
 
-    this.showOrHideIcons();
+    // Commands //
+
+    this.addCommand({
+      id: 'antidote-corrector',
+      name: t('command.corrector.label'),
+      editorCallback: () => {
+        this.handleStatusBarClick();
+      },
+    });
+
+    this.addCommand({
+      id: 'antidote-dictionary',
+      name: t('command.dictionary.label'),
+      editorCallback: () => {
+        simpleAgent
+          .Initialise()
+          .then((_) => {
+            simpleAgent.LanceDictionnaire();
+          })
+          .catch(() => {
+            new Notice(t('error.antidote_not_found'));
+          });
+      },
+    });
+
+    this.addCommand({
+      id: 'antidote-guide',
+      name: t('command.guide.label'),
+      editorCallback: () => {
+        simpleAgent
+          .Initialise()
+          .then((_) => {
+            simpleAgent.LanceGuide();
+          })
+          .catch(() => {
+            new Notice(t('error.antidote_not_found'));
+          });
+      },
+    });
 
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new SettingTab(this.app, this));
