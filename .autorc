@@ -12,7 +12,6 @@
         "labels": "grunt-work"
       }
     ],
-    "npm",
     [
       "conventional-commits",
       {
