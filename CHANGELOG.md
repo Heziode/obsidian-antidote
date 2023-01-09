@@ -1,3 +1,21 @@
+# 1.1.0 (Mon Jan 09 2023)
+
+#### 🚀 Enhancement
+
+- feat: add command to launch corrector, dictionary and guide ([@Heziode](https://github.com/Heziode))
+- feat: allow to disable Spellcheck button into the status bar ([@Heziode](https://github.com/Heziode))
+
+#### 🐛 Bug Fix
+
+- doc: update README.md ([@Heziode](https://github.com/Heziode))
+- Refactor of Antidote WebSocket API client to supports the same features as VS Code extension [#4](https://github.com/Heziode/obsidian-antidote/pull/4) ([@Heziode](https://github.com/Heziode))
+
+#### Authors: 1
+
+- Quentin Dauprat ([@Heziode](https://github.com/Heziode))
+
+---
+
 # 1.0.1 (Fri Jan 06 2023)
 
 #### 🐛 Bug Fix
