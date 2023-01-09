@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@auto-it/conventional-commits": "^10.37.6",
+    "@auto-it/omit-commits": "^10.37.6",
     "@ava/typescript": "^1.1.1",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/lodash.set": "^4.3.7",

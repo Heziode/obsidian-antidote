@@ -1,12 +1,24 @@
 {
   "plugins": [
     [
+      "omit-commits",
+      {
+        "subject": [
+          "WIP",
+          "SPIKE",
+          "CHORE",
+          "chore"
+        ],
+        "labels": "grunt-work"
+      }
+    ],
+    "npm",
+    [
       "conventional-commits",
       {
         "preset": "angular"
       }
     ],
-    "npm",
     [
       "obsidian",
       {
