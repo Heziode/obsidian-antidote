@@ -37,7 +37,7 @@ export class AgentTexteurAPI extends AgentTexteur {
     return this.mdView.editor.posToOffset(pos);
   }
 
-  private PositionVS(pos: number): EditorPosition {
+  private PositionObsidian(pos: number): EditorPosition {
     return this.mdView.editor.offsetToPos(pos);
   }
 
@@ -157,15 +157,15 @@ export class AgentTexteurAPI extends AgentTexteur {
   ): boolean {
     if (!this.DocEstDisponible()) return false;
 
-    const posDebut: EditorPosition = this.PositionVS(debut);
-    let posFin: EditorPosition = this.PositionVS(fin);
+    const posDebut: EditorPosition = this.PositionObsidian(debut);
+    let posFin: EditorPosition = this.PositionObsidian(fin);
 
     const contexteMatchParfaitement =
       this.mdView.editor.getRange(posDebut, posFin) == laChaineOrig;
     let contexteMatchAuDebut = true;
 
     if (!contexteMatchParfaitement) {
-      posFin = this.PositionVS(fin + 1);
+      posFin = this.PositionObsidian(fin + 1);
       contexteMatchAuDebut = this.mdView.editor
         .getRange(posDebut, posFin)
         .startsWith(laChaineOrig);
@@ -189,8 +189,8 @@ export class AgentTexteurAPI extends AgentTexteur {
     laChaine: string,
     _automatique: boolean
   ): Promise<boolean> {
-    const posDebut: EditorPosition = this.PositionVS(leDebut);
-    const posFin: EditorPosition = this.PositionVS(laFin);
+    const posDebut: EditorPosition = this.PositionObsidian(leDebut);
+    const posFin: EditorPosition = this.PositionObsidian(laFin);
     return new Promise<boolean>((resolve) => {
       this.mdView.editor.replaceRange(laChaine, posDebut, posFin);
       resolve(true);
@@ -225,8 +225,8 @@ export class AgentTexteurAPI extends AgentTexteur {
   SelectionneIntervalle(_leIDZone: string, debut: number, fin: number): void {
     this.MetsFocusSurLeDocument();
     this.mdView.editor.setSelection(
-      this.PositionVS(debut),
-      this.PositionVS(fin)
+      this.PositionObsidian(debut),
+      this.PositionObsidian(fin)
     );
   }
 
