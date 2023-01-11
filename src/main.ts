@@ -23,7 +23,6 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
       AcMap.set(
         td,
         new AgentConnectix(
-          'obsidian',
           new AgentTexteurAPI(
             (td.view.editor as any).cm,
             td.view,
@@ -37,8 +36,6 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
   }
   throw Error('Unknown document');
 }
-
-const simpleAgent = new AgentConnectix('obsidian');
 
 // Remember to rename these classes and interfaces!
 
@@ -94,10 +91,11 @@ export default class AntidotePlugin extends Plugin {
       }
     );
     this.dictionaryStatusBar.onClickEvent((_) => {
-      simpleAgent
+      const AC = DonneAgentConnectixPourDocument(this.app.workspace.getLeaf());
+      AC
         .Initialise()
         .then((_) => {
-          simpleAgent.LanceDictionnaire();
+          AC.LanceDictionnaire();
         })
         .catch(() => {
           new Notice(t('error.antidote_not_found'));
@@ -120,10 +118,11 @@ export default class AntidotePlugin extends Plugin {
       }
     );
     this.guidesStatusBar.onClickEvent((_) => {
-      simpleAgent
+      const AC = DonneAgentConnectixPourDocument(this.app.workspace.getLeaf());
+      AC
         .Initialise()
         .then((_) => {
-          simpleAgent.LanceGuide();
+          AC.LanceGuide();
         })
         .catch(() => {
           new Notice(t('error.antidote_not_found'));
@@ -176,10 +175,11 @@ export default class AntidotePlugin extends Plugin {
       id: 'antidote-dictionary',
       name: t('command.dictionary.label'),
       editorCallback: () => {
-        simpleAgent
+        const AC = DonneAgentConnectixPourDocument(this.app.workspace.getLeaf());
+        AC
           .Initialise()
           .then((_) => {
-            simpleAgent.LanceDictionnaire();
+            AC.LanceDictionnaire();
           })
           .catch(() => {
             new Notice(t('error.antidote_not_found'));
@@ -191,10 +191,11 @@ export default class AntidotePlugin extends Plugin {
       id: 'antidote-guide',
       name: t('command.guide.label'),
       editorCallback: () => {
-        simpleAgent
+        const AC = DonneAgentConnectixPourDocument(this.app.workspace.getLeaf());
+        AC
           .Initialise()
           .then((_) => {
-            simpleAgent.LanceGuide();
+            AC.LanceGuide();
           })
           .catch(() => {
             new Notice(t('error.antidote_not_found'));
