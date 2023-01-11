@@ -38,25 +38,25 @@ export class AgentConnectix {
 
   LanceCorrecteur(): void {
     let laRequete = {
-      message: "LanceOutil",
-      outilApi: "Correcteur",
-    }
+      message: 'LanceOutil',
+      outilApi: 'Correcteur',
+    };
     this.EnvoieMessage(JSON.stringify(laRequete));
   }
 
   LanceDictionnaire() {
     let laRequete = {
-      message: "LanceOutil",
-      outilApi: "Dictionnaires",
-    }
+      message: 'LanceOutil',
+      outilApi: 'Dictionnaires',
+    };
     this.EnvoieMessage(JSON.stringify(laRequete));
   }
 
   LanceGuide() {
     let laRequete = {
-      message: "LanceOutil",
-      outilApi: "Guides",
-    }
+      message: 'LanceOutil',
+      outilApi: 'Guides',
+    };
     this.EnvoieMessage(JSON.stringify(laRequete));
   }
 
@@ -65,7 +65,7 @@ export class AgentConnectix {
     laReponse.idMessage = data.idMessage;
 
     let message = data.message;
-    if (message == "init") {
+    if (message == 'init') {
       laReponse.titreDocument = this.monAgent?.DonneTitreDocument();
       laReponse.retourChariot = this.monAgent?.DonneRetourDeCharriot();
       laReponse.permetRetourChariot = this.monAgent?.PermetsRetourDeCharriot();
@@ -73,56 +73,56 @@ export class AgentConnectix {
       laReponse.permetEspaceFin = this.monAgent?.EspaceFineDisponible();
       laReponse.remplaceSansSelection = true;
       this.EnvoieMessage(JSON.stringify(laReponse));
-    }
-    else if (data.message == "cheminDocument") {
+    } else if (data.message == 'cheminDocument') {
       laReponse.donnee = !this.monAgent?.DonneCheminDocument();
       this.EnvoieMessage(JSON.stringify(laReponse));
-    }
-    else if (data.message == "donneZonesTexte") {
+    } else if (data.message == 'donneZonesTexte') {
       this.monAgent?.DonneLesZonesACorriger().then((lesZones) => {
         let lesZonesEnJSON: agTexteur.ZoneDeTexteJSONAPI[] = new Array();
 
-        lesZones?.forEach(element => {
+        lesZones?.forEach((element) => {
           lesZonesEnJSON.push(element.toJsonAPI());
         });
         laReponse.donnees = lesZonesEnJSON;
         this.EnvoieMessage(JSON.stringify(laReponse));
       });
-    }
-    else if (data.message == "docEstDisponible") {
+    } else if (data.message == 'docEstDisponible') {
       laReponse.donnees = this.monAgent?.DocEstDisponible();
 
       this.EnvoieMessage(JSON.stringify(laReponse));
-    }
-    else if (data.message == "editionPossible") {
+    } else if (data.message == 'editionPossible') {
       let idZone: string = data.donnees.idZone;
       let chaine: string = data.donnees.contexte;
       let debut: number = data.donnees.positionDebut;
       let fin: number = data.donnees.positionFin;
 
-      laReponse.donnees = this.monAgent?.PeutCorriger(idZone, debut, fin, chaine);
+      laReponse.donnees = this.monAgent?.PeutCorriger(
+        idZone,
+        debut,
+        fin,
+        chaine
+      );
       this.EnvoieMessage(JSON.stringify(laReponse));
-    }
-    else if (data.message == "remplace") {
+    } else if (data.message == 'remplace') {
       let idZone: string = data.donnees.idZone;
       let chaine: string = data.donnees.nouvelleChaine;
       let debut: number = data.donnees.positionRemplacementDebut;
       let fin: number = data.donnees.positionRemplacementFin;
 
-      this.monAgent?.CorrigeDansTexteur(idZone, debut, fin, chaine, false).then(() => {
-        this.monAgent?.MetsFocusSurLeDocument();
-        laReponse.donnees = true;
-        this.EnvoieMessage(JSON.stringify(laReponse));
-      });
-    }
-    else if (data.message == "selectionne") {
+      this.monAgent
+        ?.CorrigeDansTexteur(idZone, debut, fin, chaine, false)
+        .then(() => {
+          this.monAgent?.MetsFocusSurLeDocument();
+          laReponse.donnees = true;
+          this.EnvoieMessage(JSON.stringify(laReponse));
+        });
+    } else if (data.message == 'selectionne') {
       let idZone: string = data.donnees.idZone;
       let debut: number = data.donnees.positionDebut;
       let fin: number = data.donnees.positionFin;
 
       this.monAgent?.SelectionneIntervalle(idZone, debut, fin);
-    }
-    else if (data.message == "retourneAuDocument") {
+    } else if (data.message == 'retourneAuDocument') {
       this.monAgent?.RetourneAuTexteur();
     }
   }
@@ -208,7 +208,7 @@ export class AgentConnectix {
     let laRequete = {
       idPaquet: 0,
       totalPaquet: 1,
-      donnees: msg
+      donnees: msg,
     };
 
     this.EnvoiePaquet(JSON.stringify(laRequete));
@@ -219,18 +219,20 @@ export class AgentConnectix {
     if (path === '' || !existsSync(path as PathLike)) {
       throw Error('Connectix Agent not found');
     }
-    let AgentConsole = require('child_process').spawn(path, ["--api"]);
+    let AgentConsole = require('child_process').spawn(path, ['--api']);
 
-    let Promesse = new Promise<boolean>(resolve => {
-
+    let Promesse = new Promise<boolean>((resolve) => {
       AgentConsole.stdout.on('data', (data: any) => {
         let str: String = data.toString('utf8');
 
         this.prefs = JSON.parse(str.substring(str.indexOf('{'), str.length));
-        this.InitWS().then(retour => { resolve(retour); });
-      })
+        this.InitWS().then((retour) => {
+          resolve(retour);
+        });
+      });
     });
-    AgentConsole.stdin.write('API')
+
+    AgentConsole.stdin.write('API');
     let retour = await Promesse;
     return retour;
   }

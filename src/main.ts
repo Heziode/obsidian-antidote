@@ -24,6 +24,7 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
         td,
         new AgentConnectix(
           new AgentTexteurAPI(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (td.view.editor as any).cm,
             td.view,
             td.view.file.path
@@ -32,6 +33,7 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return AcMap.get(td)!;
   }
   throw Error('Unknown document');
@@ -66,7 +68,7 @@ export default class AntidotePlugin extends Plugin {
     // corrector
     this.correctorStatusBar = this.addStatusBarItem();
     this.setStatusBarReady();
-    this.correctorStatusBar.onClickEvent((_) => {
+    this.correctorStatusBar.onClickEvent(() => {
       if (!this.app.workspace.activeEditor) {
         return;
       }
@@ -90,7 +92,7 @@ export default class AntidotePlugin extends Plugin {
         setIcon(span, 'book');
       }
     );
-    this.dictionaryStatusBar.onClickEvent((_) => {
+    this.dictionaryStatusBar.onClickEvent(() => {
       if (!this.app.workspace.activeEditor) {
         return;
       }
@@ -113,7 +115,7 @@ export default class AntidotePlugin extends Plugin {
         setIcon(span, 'book');
       }
     );
-    this.guidesStatusBar.onClickEvent((_) => {
+    this.guidesStatusBar.onClickEvent(() => {
       if (!this.app.workspace.activeEditor) {
         return;
       }

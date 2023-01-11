@@ -28,7 +28,7 @@ export class AgentTexteurAPI extends AgentTexteur {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  Initialise(): void { }
+  Initialise(): void {}
 
   private PositionAbsolue(pos: EditorPosition): number {
     return this.mdView.editor.posToOffset(pos);
@@ -114,6 +114,7 @@ export class AgentTexteurAPI extends AgentTexteur {
     leDebut: number,
     laFin: number,
     laChaine: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _automatique: boolean
   ): Promise<boolean> {
     const posDebut: EditorPosition = this.PositionObsidian(leDebut);
