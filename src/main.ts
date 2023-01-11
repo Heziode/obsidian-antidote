@@ -71,7 +71,7 @@ export default class AntidotePlugin extends Plugin {
         return;
       }
 
-      this.handleStatusBarClick();
+      this.handleCorrecteur();
     });
 
     // dictionary
@@ -91,15 +91,11 @@ export default class AntidotePlugin extends Plugin {
       }
     );
     this.dictionaryStatusBar.onClickEvent((_) => {
-      const AC = DonneAgentConnectixPourDocument(this.app.workspace.getLeaf());
-      AC
-        .Initialise()
-        .then((_) => {
-          AC.LanceDictionnaire();
-        })
-        .catch(() => {
-          new Notice(t('error.antidote_not_found'));
-        });
+      if (!this.app.workspace.activeEditor) {
+        return;
+      }
+
+      this.handleDictionnaire();
     });
 
     // guides
@@ -118,15 +114,11 @@ export default class AntidotePlugin extends Plugin {
       }
     );
     this.guidesStatusBar.onClickEvent((_) => {
-      const AC = DonneAgentConnectixPourDocument(this.app.workspace.getLeaf());
-      AC
-        .Initialise()
-        .then((_) => {
-          AC.LanceGuide();
-        })
-        .catch(() => {
-          new Notice(t('error.antidote_not_found'));
-        });
+      if (!this.app.workspace.activeEditor) {
+        return;
+      }
+
+      this.handleDictionnaire();
     });
 
     this.showOrHideIcons();
@@ -167,7 +159,11 @@ export default class AntidotePlugin extends Plugin {
       id: 'antidote-corrector',
       name: t('command.corrector.label'),
       editorCallback: () => {
-        this.handleStatusBarClick();
+        if (!this.app.workspace.activeEditor) {
+          return;
+        }
+
+        this.handleCorrecteur();
       },
     });
 
@@ -175,15 +171,11 @@ export default class AntidotePlugin extends Plugin {
       id: 'antidote-dictionary',
       name: t('command.dictionary.label'),
       editorCallback: () => {
-        const AC = DonneAgentConnectixPourDocument(this.app.workspace.getLeaf());
-        AC
-          .Initialise()
-          .then((_) => {
-            AC.LanceDictionnaire();
-          })
-          .catch(() => {
-            new Notice(t('error.antidote_not_found'));
-          });
+        if (!this.app.workspace.activeEditor) {
+          return;
+        }
+
+        this.handleDictionnaire();
       },
     });
 
@@ -191,15 +183,11 @@ export default class AntidotePlugin extends Plugin {
       id: 'antidote-guide',
       name: t('command.guide.label'),
       editorCallback: () => {
-        const AC = DonneAgentConnectixPourDocument(this.app.workspace.getLeaf());
-        AC
-          .Initialise()
-          .then((_) => {
-            AC.LanceGuide();
-          })
-          .catch(() => {
-            new Notice(t('error.antidote_not_found'));
-          });
+        if (!this.app.workspace.activeEditor) {
+          return;
+        }
+
+        this.handleGuide();
       },
     });
 
@@ -294,7 +282,7 @@ export default class AntidotePlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  private readonly handleStatusBarClick = async () => {
+  private readonly handleCorrecteur = async () => {
     const activeLeaf = this.app.workspace.getLeaf();
 
     if (
@@ -310,6 +298,50 @@ export default class AntidotePlugin extends Plugin {
           return;
         }
         AC.LanceCorrecteur();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  private readonly handleDictionnaire = async () => {
+    const activeLeaf = this.app.workspace.getLeaf();
+
+    if (
+      activeLeaf?.view instanceof MarkdownView &&
+      activeLeaf.view.getMode() === 'source'
+    ) {
+      try {
+        const AC = DonneAgentConnectixPourDocument(activeLeaf);
+        try {
+          await AC.Initialise();
+        } catch (e) {
+          new Notice(t('error.antidote_not_found'));
+          return;
+        }
+        AC.LanceDictionnaire();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  private readonly handleGuide = async () => {
+    const activeLeaf = this.app.workspace.getLeaf();
+
+    if (
+      activeLeaf?.view instanceof MarkdownView &&
+      activeLeaf.view.getMode() === 'source'
+    ) {
+      try {
+        const AC = DonneAgentConnectixPourDocument(activeLeaf);
+        try {
+          await AC.Initialise();
+        } catch (e) {
+          new Notice(t('error.antidote_not_found'));
+          return;
+        }
+        AC.LanceGuide();
       } catch (e) {
         console.error(e);
       }
