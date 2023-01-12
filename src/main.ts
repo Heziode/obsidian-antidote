@@ -23,8 +23,8 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
       AcMap.set(
         td,
         new AgentConnectix(
-          'obsidian',
           new AgentTexteurAPI(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (td.view.editor as any).cm,
             td.view,
             td.view.file.path
@@ -33,12 +33,11 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return AcMap.get(td)!;
   }
   throw Error('Unknown document');
 }
-
-const simpleAgent = new AgentConnectix('obsidian');
 
 // Remember to rename these classes and interfaces!
 
@@ -69,12 +68,12 @@ export default class AntidotePlugin extends Plugin {
     // corrector
     this.correctorStatusBar = this.addStatusBarItem();
     this.setStatusBarReady();
-    this.correctorStatusBar.onClickEvent((_) => {
+    this.correctorStatusBar.onClickEvent(() => {
       if (!this.app.workspace.activeEditor) {
         return;
       }
 
-      this.handleStatusBarClick();
+      this.handleCorrecteur();
     });
 
     // dictionary
@@ -93,15 +92,12 @@ export default class AntidotePlugin extends Plugin {
         setIcon(span, 'book');
       }
     );
-    this.dictionaryStatusBar.onClickEvent((_) => {
-      simpleAgent
-        .Initialise()
-        .then((_) => {
-          simpleAgent.LanceDictionnaire();
-        })
-        .catch(() => {
-          new Notice(t('error.antidote_not_found'));
-        });
+    this.dictionaryStatusBar.onClickEvent(() => {
+      if (!this.app.workspace.activeEditor) {
+        return;
+      }
+
+      this.handleDictionnaire();
     });
 
     // guides
@@ -119,15 +115,12 @@ export default class AntidotePlugin extends Plugin {
         setIcon(span, 'book');
       }
     );
-    this.guidesStatusBar.onClickEvent((_) => {
-      simpleAgent
-        .Initialise()
-        .then((_) => {
-          simpleAgent.LanceGuide();
-        })
-        .catch(() => {
-          new Notice(t('error.antidote_not_found'));
-        });
+    this.guidesStatusBar.onClickEvent(() => {
+      if (!this.app.workspace.activeEditor) {
+        return;
+      }
+
+      this.handleDictionnaire();
     });
 
     this.showOrHideIcons();
@@ -168,7 +161,11 @@ export default class AntidotePlugin extends Plugin {
       id: 'antidote-corrector',
       name: t('command.corrector.label'),
       editorCallback: () => {
-        this.handleStatusBarClick();
+        if (!this.app.workspace.activeEditor) {
+          return;
+        }
+
+        this.handleCorrecteur();
       },
     });
 
@@ -176,14 +173,11 @@ export default class AntidotePlugin extends Plugin {
       id: 'antidote-dictionary',
       name: t('command.dictionary.label'),
       editorCallback: () => {
-        simpleAgent
-          .Initialise()
-          .then((_) => {
-            simpleAgent.LanceDictionnaire();
-          })
-          .catch(() => {
-            new Notice(t('error.antidote_not_found'));
-          });
+        if (!this.app.workspace.activeEditor) {
+          return;
+        }
+
+        this.handleDictionnaire();
       },
     });
 
@@ -191,14 +185,11 @@ export default class AntidotePlugin extends Plugin {
       id: 'antidote-guide',
       name: t('command.guide.label'),
       editorCallback: () => {
-        simpleAgent
-          .Initialise()
-          .then((_) => {
-            simpleAgent.LanceGuide();
-          })
-          .catch(() => {
-            new Notice(t('error.antidote_not_found'));
-          });
+        if (!this.app.workspace.activeEditor) {
+          return;
+        }
+
+        this.handleGuide();
       },
     });
 
@@ -293,7 +284,7 @@ export default class AntidotePlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  private readonly handleStatusBarClick = async () => {
+  private readonly handleCorrecteur = async () => {
     const activeLeaf = this.app.workspace.getLeaf();
 
     if (
@@ -309,6 +300,50 @@ export default class AntidotePlugin extends Plugin {
           return;
         }
         AC.LanceCorrecteur();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  private readonly handleDictionnaire = async () => {
+    const activeLeaf = this.app.workspace.getLeaf();
+
+    if (
+      activeLeaf?.view instanceof MarkdownView &&
+      activeLeaf.view.getMode() === 'source'
+    ) {
+      try {
+        const AC = DonneAgentConnectixPourDocument(activeLeaf);
+        try {
+          await AC.Initialise();
+        } catch (e) {
+          new Notice(t('error.antidote_not_found'));
+          return;
+        }
+        AC.LanceDictionnaire();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  private readonly handleGuide = async () => {
+    const activeLeaf = this.app.workspace.getLeaf();
+
+    if (
+      activeLeaf?.view instanceof MarkdownView &&
+      activeLeaf.view.getMode() === 'source'
+    ) {
+      try {
+        const AC = DonneAgentConnectixPourDocument(activeLeaf);
+        try {
+          await AC.Initialise();
+        } catch (e) {
+          new Notice(t('error.antidote_not_found'));
+          return;
+        }
+        AC.LanceGuide();
       } catch (e) {
         console.error(e);
       }

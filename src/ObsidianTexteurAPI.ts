@@ -1,4 +1,3 @@
-import { createHash } from 'crypto';
 import { parse as parseURL } from 'url';
 
 import { EditorView } from '@codemirror/view';
@@ -14,8 +13,6 @@ import {
   AgentTexteur,
   ZoneDeTexte,
 } from './lib/antidote/InterfaceAgentTexteur';
-import { Range, Selection } from './lib/vscode/rangeUtils';
-import { getWordRangeAtPosition } from './lib/vscode/textUtils';
 
 export class AgentTexteurAPI extends AgentTexteur {
   private edView: EditorView;
@@ -37,69 +34,12 @@ export class AgentTexteurAPI extends AgentTexteur {
     return this.mdView.editor.posToOffset(pos);
   }
 
-  private PositionVS(pos: number): EditorPosition {
+  private PositionObsidian(pos: number): EditorPosition {
     return this.mdView.editor.offsetToPos(pos);
   }
 
   DonneRetourDeCharriot(): string {
     return this.edView.state.lineBreak;
-  }
-
-  async DonneSelectionDansSonContexte(): Promise<{
-    texte: string;
-    debutSelection: number;
-    finSelection: number;
-  }> {
-    let selectedText = '';
-    let startOffset = 0;
-    let endOffset = 0;
-
-    let range: Range | undefined;
-    const selection: Selection = Selection.ofSel(
-      this.mdView.editor.listSelections()[0]
-    );
-    const sentenceRegex = new RegExp('[^.!?]*[.!?]');
-    const startSentenceRange = getWordRangeAtPosition(
-      this.mdView,
-      selection.start,
-      sentenceRegex
-    );
-    const endSentenceRange = getWordRangeAtPosition(
-      this.mdView,
-      selection.end,
-      sentenceRegex
-    );
-
-    if (endSentenceRange) {
-      range = startSentenceRange?.union(endSentenceRange);
-    }
-
-    selectedText = range
-      ? this.mdView.editor.getRange(
-          range.start.toEditorPosition(),
-          range.end.toEditorPosition()
-        )
-      : this.mdView.editor.getValue();
-    startOffset =
-      this.PositionAbsolue(selection.start.toEditorPosition()) -
-      this.PositionAbsolue(
-        range
-          ? range.start.toEditorPosition()
-          : selection.start.toEditorPosition()
-      );
-    endOffset =
-      this.PositionAbsolue(selection.end.toEditorPosition()) -
-      this.PositionAbsolue(
-        range ? range.end.toEditorPosition() : selection.end.toEditorPosition()
-      );
-
-    return new Promise((resolve) =>
-      resolve({
-        texte: selectedText,
-        debutSelection: startOffset,
-        finSelection: endOffset,
-      })
-    );
   }
 
   DonneTitreDocument(): string {
@@ -136,19 +76,6 @@ export class AgentTexteurAPI extends AgentTexteur {
     return new Promise<ZoneDeTexte[]>((resolve) => resolve(lesZones));
   }
 
-  DonneIdWSExpediteur() {
-    const hash = createHash('md5');
-    const id = new Date().getTime().toString();
-
-    hash.update(this.DonneTitreDocument());
-    hash.update(id);
-    return 'vsc' + hash.digest('hex');
-  }
-
-  DonneNomExpediteur() {
-    return 'ConnecteurVsCode';
-  }
-
   PeutCorriger(
     _leIDZone: string,
     debut: number,
@@ -157,15 +84,15 @@ export class AgentTexteurAPI extends AgentTexteur {
   ): boolean {
     if (!this.DocEstDisponible()) return false;
 
-    const posDebut: EditorPosition = this.PositionVS(debut);
-    let posFin: EditorPosition = this.PositionVS(fin);
+    const posDebut: EditorPosition = this.PositionObsidian(debut);
+    let posFin: EditorPosition = this.PositionObsidian(fin);
 
     const contexteMatchParfaitement =
       this.mdView.editor.getRange(posDebut, posFin) == laChaineOrig;
     let contexteMatchAuDebut = true;
 
     if (!contexteMatchParfaitement) {
-      posFin = this.PositionVS(fin + 1);
+      posFin = this.PositionObsidian(fin + 1);
       contexteMatchAuDebut = this.mdView.editor
         .getRange(posDebut, posFin)
         .startsWith(laChaineOrig);
@@ -187,10 +114,11 @@ export class AgentTexteurAPI extends AgentTexteur {
     leDebut: number,
     laFin: number,
     laChaine: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _automatique: boolean
   ): Promise<boolean> {
-    const posDebut: EditorPosition = this.PositionVS(leDebut);
-    const posFin: EditorPosition = this.PositionVS(laFin);
+    const posDebut: EditorPosition = this.PositionObsidian(leDebut);
+    const posFin: EditorPosition = this.PositionObsidian(laFin);
     return new Promise<boolean>((resolve) => {
       this.mdView.editor.replaceRange(laChaine, posDebut, posFin);
       resolve(true);
@@ -225,27 +153,8 @@ export class AgentTexteurAPI extends AgentTexteur {
   SelectionneIntervalle(_leIDZone: string, debut: number, fin: number): void {
     this.MetsFocusSurLeDocument();
     this.mdView.editor.setSelection(
-      this.PositionVS(debut),
-      this.PositionVS(fin)
+      this.PositionObsidian(debut),
+      this.PositionObsidian(fin)
     );
-  }
-
-  DocEstMort(): boolean {
-    return !this.DocEstDisponible();
-  }
-  DonneDebutSelection(): Promise<number> {
-    const selection: Selection = Selection.ofSel(
-      this.mdView.editor.listSelections()[0]
-    );
-    return new Promise((resolve) => {
-      resolve(this.PositionAbsolue(selection.start.toEditorPosition()));
-    });
-  }
-  RemplaceMot(valeur: string): Promise<void> {
-    this.mdView.editor.replaceSelection(valeur);
-
-    return new Promise((resolve) => {
-      resolve();
-    });
   }
 }

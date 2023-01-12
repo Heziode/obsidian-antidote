@@ -7,7 +7,7 @@ Antidote supports these languages:
 - English
 - French
 
-This plugin works with Antidote 10 and higher, on macOS, Linux and Windows.
+This plugin works with Antidote 10 (using Connectix version 11 or higher) and higher, and Antidote web, on macOS, Linux and Windows.
 
 **This plugin does not work on smartphones.**
 
@@ -31,9 +31,15 @@ This plugin adds 3 icons into the status bar:
 
 ![](./assets/obsidian-statusbar.png)
 
-You can show or hide every icons from settings.
+You can show or hide every icon from settings.
 
-It also add command for corrector, dictionary and guide.
+It also adds command for corrector, dictionary and guide.
+
+### Additional note for Linux users
+
+Antidote 10 is the latest supported version of Antidote on this OS. Accordingly, the Connectix version 10 installed with this version is not supported.
+
+In order to use Antidote 10 (or web) with this plugin, you will have to install the latest Connectix (version 11 or higher). Connectix is the bridge between Obsidian and Antidote (10, 11+, web), so by keeping Antidote 10 with Connectix 11, you will be able to use this plugin.
 
 ## Support this plugin
 
