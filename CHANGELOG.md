@@ -1,3 +1,15 @@
+# 2.0.0 (Thu Jan 12 2023)
+
+#### 💥 Breaking Change
+
+- feat!: using Antidote public API instead of old private API [#5](https://github.com/Heziode/obsidian-antidote/pull/5) ([@Heziode](https://github.com/Heziode))
+
+#### Authors: 1
+
+- Quentin Dauprat ([@Heziode](https://github.com/Heziode))
+
+---
+
 # 1.1.0 (Mon Jan 09 2023)
 
 #### 🚀 Enhancement
