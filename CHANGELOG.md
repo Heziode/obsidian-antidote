@@ -4,9 +4,10 @@
 
 - feat!: using Antidote public API instead of old private API [#5](https://github.com/Heziode/obsidian-antidote/pull/5) ([@Heziode](https://github.com/Heziode))
 
-#### Authors: 1
+#### Authors: 2
 
 - Quentin Dauprat ([@Heziode](https://github.com/Heziode))
+- Simon Langevin ([@Acibi - DruideInformatiqueInc](https://github.com/Acibi))
 
 ---
 
