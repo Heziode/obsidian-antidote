@@ -1,3 +1,19 @@
+# 2.1.0 (Sun Jan 22 2023)
+
+#### 🚀 Enhancement
+
+- feat: add a button to check the whole document ([@Heziode](https://github.com/Heziode))
+
+#### 🐛 Bug Fix
+
+- fix: fix state of corrector icon depending on focus and settings ([@Heziode](https://github.com/Heziode))
+
+#### Authors: 1
+
+- Quentin Dauprat ([@Heziode](https://github.com/Heziode))
+
+---
+
 # 2.0.0 (Thu Jan 12 2023)
 
 #### 💥 Breaking Change
