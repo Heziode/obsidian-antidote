@@ -67,7 +67,7 @@ export default class AntidotePlugin extends Plugin {
 
     // corrector
     this.correctorStatusBar = this.addStatusBarItem();
-    this.setStatusBarReady();
+    this.setCorrectorStatusBarReady();
     this.correctorStatusBar.onClickEvent(() => {
       if (!this.app.workspace.activeEditor) {
         return;
@@ -202,11 +202,12 @@ export default class AntidotePlugin extends Plugin {
 
     if (
       leaf?.view instanceof MarkdownView &&
-      leaf.view.getMode() === 'source'
+      leaf.view.getMode() === 'source' &&
+      this.settings.showCorrectorIcon
     ) {
-      this.showStatusBarIcons();
+      this.correctorStatusBar.removeClass('hide');
     } else {
-      this.hideStatusBarIcons();
+      this.correctorStatusBar.removeClass('hide');
     }
 
     if (this.settings.showDictionaryIcon) {
@@ -223,11 +224,12 @@ export default class AntidotePlugin extends Plugin {
   }
 
   public showStatusBarIcons() {
-    if (!this.settings.showCorrectorIcon) {
-      this.hideStatusBarIcons();
-      return;
+    if (this.settings.showCorrectorAllIcon) {
+      this.correctorAllStatusBar.removeClass('hide');
     }
-    this.correctorStatusBar.removeClass('hide');
+    if (this.settings.showCorrectorIcon) {
+      this.correctorStatusBar.removeClass('hide');
+    }
     if (this.settings.showDictionaryIcon) {
       this.dictionaryStatusBar.removeClass('hide');
     }
@@ -243,7 +245,7 @@ export default class AntidotePlugin extends Plugin {
     this.guidesStatusBar.addClass('hide');
   }
 
-  public setStatusBarReady() {
+  public setCorrectorStatusBarReady() {
     this.isloading = false;
     this.correctorStatusBar.empty();
     this.correctorStatusBar.addClass('mod-clickable');
