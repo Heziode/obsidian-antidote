@@ -1,4 +1,5 @@
 import {
+  addIcon,
   App,
   MarkdownView,
   Notice,
@@ -12,12 +13,16 @@ import {
 import { AgentTexteurAPI } from './ObsidianTexteurAPI';
 import { buyMeACoffee } from './assets/BuyMeACoffee';
 import { paypal } from './assets/PayPal';
+import { check_check } from './assets/checkCheckIcon';
 import { t } from './i18n';
 import { AgentConnectix } from './lib/antidote/AgentConnectix';
 
 const AcMap: Map<WorkspaceLeaf, AgentConnectix> = new Map();
 
-function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
+function DonneAgentConnectixPourDocument(
+  td: WorkspaceLeaf,
+  checkWholeDocument = false
+): AgentConnectix {
   if (td?.view instanceof MarkdownView && td.view.getMode() === 'source') {
     if (!AcMap.has(td)) {
       AcMap.set(
@@ -27,7 +32,8 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (td.view.editor as any).cm,
             td.view,
-            td.view.file.path
+            td.view.file.path,
+            checkWholeDocument
           )
         )
       );
@@ -42,12 +48,14 @@ function DonneAgentConnectixPourDocument(td: WorkspaceLeaf): AgentConnectix {
 // Remember to rename these classes and interfaces!
 
 interface AntidotePluginSettings {
+  showCorrectorAllIcon: boolean;
   showCorrectorIcon: boolean;
   showDictionaryIcon: boolean;
   showGuideIcon: boolean;
 }
 
 const DEFAULT_SETTINGS: AntidotePluginSettings = {
+  showCorrectorAllIcon: true,
   showCorrectorIcon: true,
   showDictionaryIcon: true,
   showGuideIcon: true,
@@ -56,6 +64,7 @@ const DEFAULT_SETTINGS: AntidotePluginSettings = {
 export default class AntidotePlugin extends Plugin {
   isloading = false;
   settings!: AntidotePluginSettings;
+  private correctorAllStatusBar!: HTMLElement;
   private correctorStatusBar!: HTMLElement;
   private dictionaryStatusBar!: HTMLElement;
   private guidesStatusBar!: HTMLElement;
@@ -63,7 +72,20 @@ export default class AntidotePlugin extends Plugin {
   async onload() {
     await this.loadSettings();
 
+    addIcon('check-check', check_check);
+
     // Status bar //
+
+    // corrector all document
+    this.correctorAllStatusBar = this.addStatusBarItem();
+    this.setCorrectorAllStatusBarReady();
+    this.correctorAllStatusBar.onClickEvent(() => {
+      if (!this.app.workspace.activeEditor) {
+        return;
+      }
+
+      this.handleCorrecteur(true);
+    });
 
     // corrector
     this.correctorStatusBar = this.addStatusBarItem();
@@ -158,6 +180,18 @@ export default class AntidotePlugin extends Plugin {
     // Commands //
 
     this.addCommand({
+      id: 'antidote-corrector-all',
+      name: t('command.corrector_all.label'),
+      editorCallback: () => {
+        if (!this.app.workspace.activeEditor) {
+          return;
+        }
+
+        this.handleCorrecteur(true);
+      },
+    });
+
+    this.addCommand({
       id: 'antidote-corrector',
       name: t('command.corrector.label'),
       editorCallback: () => {
@@ -200,14 +234,19 @@ export default class AntidotePlugin extends Plugin {
   public showOrHideIcons() {
     const leaf = app.workspace.getLeaf();
 
-    if (
-      leaf?.view instanceof MarkdownView &&
-      leaf.view.getMode() === 'source' &&
-      this.settings.showCorrectorIcon
-    ) {
+    const isDocumentFocus =
+      leaf?.view instanceof MarkdownView && leaf.view.getMode() === 'source';
+
+    if (isDocumentFocus && this.settings.showCorrectorIcon) {
       this.correctorStatusBar.removeClass('hide');
     } else {
-      this.correctorStatusBar.removeClass('hide');
+      this.correctorStatusBar.addClass('hide');
+    }
+
+    if (isDocumentFocus && this.settings.showCorrectorAllIcon) {
+      this.correctorAllStatusBar.removeClass('hide');
+    } else {
+      this.correctorAllStatusBar.addClass('hide');
     }
 
     if (this.settings.showDictionaryIcon) {
@@ -240,6 +279,7 @@ export default class AntidotePlugin extends Plugin {
   }
 
   public hideStatusBarIcons() {
+    this.correctorAllStatusBar.addClass('hide');
     this.correctorStatusBar.addClass('hide');
     this.dictionaryStatusBar.addClass('hide');
     this.guidesStatusBar.addClass('hide');
@@ -259,6 +299,24 @@ export default class AntidotePlugin extends Plugin {
       },
       (span) => {
         setIcon(span, 'check');
+      }
+    );
+  }
+
+  public setCorrectorAllStatusBarReady() {
+    this.isloading = false;
+    this.correctorAllStatusBar.empty();
+    this.correctorAllStatusBar.addClass('mod-clickable');
+    this.correctorAllStatusBar.style.color = 'var(--color-green)';
+    this.correctorAllStatusBar.createSpan(
+      {
+        attr: {
+          'aria-label-position': 'top',
+          'aria-label': t('sidebar.corrector_all.label'),
+        },
+      },
+      (span) => {
+        setIcon(span, 'check-check');
       }
     );
   }
@@ -286,7 +344,7 @@ export default class AntidotePlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  private readonly handleCorrecteur = async () => {
+  private readonly handleCorrecteur = async (checkWholeDocument = false) => {
     const activeLeaf = this.app.workspace.getLeaf();
 
     if (
@@ -294,7 +352,10 @@ export default class AntidotePlugin extends Plugin {
       activeLeaf.view.getMode() === 'source'
     ) {
       try {
-        const AC = DonneAgentConnectixPourDocument(activeLeaf);
+        const AC = DonneAgentConnectixPourDocument(
+          activeLeaf,
+          checkWholeDocument
+        );
         try {
           await AC.Initialise();
         } catch (e) {
@@ -370,6 +431,18 @@ class SettingTab extends PluginSettingTab {
     const summary = containerEl.createEl('summary');
     new Setting(summary).setHeading().setName(t('settings.title'));
     summary.createDiv('collapser').createDiv('handle');
+
+    new Setting(containerEl)
+      .setName(t('settings.corrector_all.title'))
+      .addToggle((t) => {
+        t.setValue(this.plugin.settings.showCorrectorAllIcon).onChange(
+          async (value) => {
+            this.plugin.settings.showCorrectorAllIcon = value;
+            await this.plugin.saveSettings();
+            this.plugin.showOrHideIcons();
+          }
+        );
+      });
 
     new Setting(containerEl)
       .setName(t('settings.corrector.title'))

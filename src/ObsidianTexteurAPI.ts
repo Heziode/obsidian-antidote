@@ -18,13 +18,20 @@ export class AgentTexteurAPI extends AgentTexteur {
   private edView: EditorView;
   private mdView: MarkdownView;
   private documentPath: string;
+  private checkWholeDocument: boolean;
 
-  constructor(edView: EditorView, mdView: MarkdownView, documentPath: string) {
+  constructor(
+    edView: EditorView,
+    mdView: MarkdownView,
+    documentPath: string,
+    checkWholeDocument: boolean
+  ) {
     super();
 
     this.edView = edView;
     this.mdView = mdView;
     this.documentPath = documentPath;
+    this.checkWholeDocument = checkWholeDocument;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -61,6 +68,18 @@ export class AgentTexteurAPI extends AgentTexteur {
   DonneLesZonesACorriger(): Promise<ZoneDeTexte[]> {
     const text = this.mdView.editor.getValue();
     const selections: EditorSelection[] = this.mdView.editor.listSelections();
+
+    if (
+      this.checkWholeDocument &&
+      selections.length === 1 &&
+      this.PositionAbsolue(selections[0].anchor) ===
+        this.PositionAbsolue(selections[0].head)
+    ) {
+      return new Promise<ZoneDeTexte[]>((resolve) =>
+        resolve([new ZoneDeTexte(text, 0, 0, '0')])
+      );
+    }
+
     const lesZones: ZoneDeTexte[] = selections.map((selection, index) => {
       const start: EditorPosition = selection.head;
       const end = selection.anchor;
