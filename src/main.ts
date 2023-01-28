@@ -97,8 +97,7 @@ export default class AntidotePlugin extends Plugin {
     // dictionary
 
     this.dictionaryStatusBar = this.addStatusBarItem();
-    this.dictionaryStatusBar.addClass('mod-clickable');
-    this.dictionaryStatusBar.style.color = 'var(--color-green)';
+    this.dictionaryStatusBar.addClass('mod-clickable', 'antidote-green');
     this.dictionaryStatusBar.createSpan(
       {
         attr: {
@@ -120,8 +119,7 @@ export default class AntidotePlugin extends Plugin {
 
     // guides
     this.guidesStatusBar = this.addStatusBarItem();
-    this.guidesStatusBar.addClass('mod-clickable');
-    this.guidesStatusBar.style.color = 'var(--color-orange)';
+    this.guidesStatusBar.addClass('mod-clickable', 'antidote-orange');
     this.guidesStatusBar.createSpan(
       {
         attr: {
@@ -284,8 +282,7 @@ export default class AntidotePlugin extends Plugin {
   public setCorrectorStatusBarReady() {
     this.isloading = false;
     this.correctorStatusBar.empty();
-    this.correctorStatusBar.addClass('mod-clickable');
-    this.correctorStatusBar.style.color = 'var(--color-green)';
+    this.correctorStatusBar.addClass('mod-clickable', 'antidote-green');
     this.correctorStatusBar.createSpan(
       {
         attr: {
@@ -302,8 +299,7 @@ export default class AntidotePlugin extends Plugin {
   public setCorrectorAllStatusBarReady() {
     this.isloading = false;
     this.correctorAllStatusBar.empty();
-    this.correctorAllStatusBar.addClass('mod-clickable');
-    this.correctorAllStatusBar.style.color = 'var(--color-green)';
+    this.correctorAllStatusBar.addClass('mod-clickable', 'antidote-green');
     this.correctorAllStatusBar.createSpan(
       {
         attr: {
@@ -472,8 +468,7 @@ class SettingTab extends PluginSettingTab {
     const parser = new DOMParser();
 
     const div = containerEl.createEl('div');
-    div.style.display = 'flex';
-    div.style.marginTop = '2em';
+    div.addClass('antidote-settings-donation');
 
     div.appendChild(
       createDonateButton(
