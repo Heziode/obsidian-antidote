@@ -15,7 +15,7 @@ import { paypal } from './assets/PayPal';
 import { t } from './i18n';
 import { AgentConnectix } from './lib/antidote/AgentConnectix';
 
-const AcMap: Map<WorkspaceLeaf, AgentConnectix> = new Map();
+const AcMap: WeakMap<WorkspaceLeaf, AgentConnectix> = new WeakMap();
 
 function DonneAgentConnectixPourDocument(
   td: WorkspaceLeaf,
