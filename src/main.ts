@@ -1,5 +1,4 @@
 import {
-  addIcon,
   App,
   MarkdownView,
   Notice,
@@ -314,21 +313,6 @@ export default class AntidotePlugin extends Plugin {
       },
       (span) => {
         setIcon(span, 'check-circle');
-      }
-    );
-  }
-
-  public setStatusBarWorking() {
-    if (this.isloading) return;
-
-    this.isloading = true;
-    this.correctorStatusBar.empty();
-    this.correctorStatusBar.addClass('mod-clickable');
-    this.correctorStatusBar.style.color = '';
-    this.correctorStatusBar.createSpan(
-      { cls: ['lt-status-bar-btn', 'spin-loading'] },
-      (span) => {
-        setIcon(span, 'refresh-cw');
       }
     );
   }
