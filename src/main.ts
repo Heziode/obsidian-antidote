@@ -13,7 +13,6 @@ import {
 import { AgentTexteurAPI } from './ObsidianTexteurAPI';
 import { buyMeACoffee } from './assets/BuyMeACoffee';
 import { paypal } from './assets/PayPal';
-import { check_check } from './assets/checkCheckIcon';
 import { t } from './i18n';
 import { AgentConnectix } from './lib/antidote/AgentConnectix';
 
@@ -71,8 +70,6 @@ export default class AntidotePlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
-
-    addIcon('check-check', check_check);
 
     // Status bar //
 
@@ -316,7 +313,7 @@ export default class AntidotePlugin extends Plugin {
         },
       },
       (span) => {
-        setIcon(span, 'check-check');
+        setIcon(span, 'check-circle');
       }
     );
   }
