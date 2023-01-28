@@ -23,8 +23,9 @@ Download `main.js`, `manifest.json`, `styles.css` from the [latest release](http
 
 ## How to use
 
-This plugin adds 3 icons into the status bar:
+This plugin adds 4 icons into the status bar:
 
+- The check within a circle corresponding to the Antidote corrector, that will check the whole document
 - The check corresponding to the Antidote corrector
 - The green book corresponding to the Antidote dictionary
 - The orange book corresponding to the Antidote guide
@@ -34,6 +35,10 @@ This plugin adds 3 icons into the status bar:
 You can show or hide every icon from settings.
 
 It also adds command for corrector, dictionary and guide.
+
+### Behavior of "Correct All" and "Corrector"
+
+The "Correct All" send the whole document to Antidote, or, the selection, whereas the "simple correct" send the text depending the position of the cursor and the selection. The "simple correct" has the same behavior as the official integrations in other software (VS Code, Word, etc.).
 
 ### Additional note for Linux users
 
