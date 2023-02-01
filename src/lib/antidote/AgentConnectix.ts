@@ -69,7 +69,7 @@ export class AgentConnectix {
       laReponse.titreDocument = this.monAgent?.DonneTitreDocument();
       laReponse.retourChariot = this.monAgent?.DonneRetourDeCharriot();
       laReponse.permetRetourChariot = this.monAgent?.PermetsRetourDeCharriot();
-      laReponse.permetEspaceInsecables = this.monAgent?.JeTraiteLesInsecables();
+      laReponse.permetEspaceInsecable = this.monAgent?.JeTraiteLesInsecables();
       laReponse.permetEspaceFin = this.monAgent?.EspaceFineDisponible();
       laReponse.remplaceSansSelection = true;
       this.EnvoieMessage(JSON.stringify(laReponse));
