@@ -35,7 +35,7 @@ export class AgentTexteurAPI extends AgentTexteur {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  Initialise(): void {}
+  Initialise(): void { }
 
   private PositionAbsolue(pos: EditorPosition): number {
     return this.mdView.editor.posToOffset(pos);
@@ -61,6 +61,10 @@ export class AgentTexteurAPI extends AgentTexteur {
     );
   }
 
+  DonneTypeDocument(): string {
+    return "markdown";
+  }
+
   PermetsRetourDeCharriot(): boolean {
     return true;
   }
@@ -73,7 +77,7 @@ export class AgentTexteurAPI extends AgentTexteur {
       this.checkWholeDocument &&
       selections.length === 1 &&
       this.PositionAbsolue(selections[0].anchor) ===
-        this.PositionAbsolue(selections[0].head)
+      this.PositionAbsolue(selections[0].head)
     ) {
       return new Promise<ZoneDeTexte[]>((resolve) =>
         resolve([new ZoneDeTexte(text, 0, 0, '0')])

@@ -3,6 +3,7 @@ export abstract class AgentTexteur {
   abstract DonneRetourDeCharriot(): string;
   abstract DonneTitreDocument(): string;
   abstract DonneCheminDocument(): string;
+  abstract DonneTypeDocument(): string;
   EspaceFineDisponible(): boolean {
     return false;
   }
