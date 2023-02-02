@@ -1,3 +1,4 @@
+import { EditorView } from '@codemirror/view';
 import {
   App,
   MarkdownView,
@@ -27,10 +28,9 @@ function DonneAgentConnectixPourDocument(
         td,
         new AgentConnectix(
           new AgentTexteurAPI(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (td.editor as any).cm,
             td,
-            td.file.path,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ((td.editor as any).cm as EditorView).state.lineBreak,
             checkWholeDocument
           )
         )

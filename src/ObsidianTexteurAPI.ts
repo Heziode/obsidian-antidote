@@ -1,6 +1,5 @@
 import { parse as parseURL } from 'url';
 
-import { EditorView } from '@codemirror/view';
 import {
   EditorPosition,
   EditorSelection,
@@ -16,22 +15,21 @@ import {
 } from './lib/antidote/InterfaceAgentTexteur';
 
 export class AgentTexteurAPI extends AgentTexteur {
-  private edView: EditorView;
   private mdView: MarkdownView;
   private documentPath: string;
+  private lineBreak: string;
   private checkWholeDocument: boolean;
 
   constructor(
-    edView: EditorView,
     mdView: MarkdownView,
-    documentPath: string,
+    lineBreak: string,
     checkWholeDocument: boolean
   ) {
     super();
 
-    this.edView = edView;
     this.mdView = mdView;
-    this.documentPath = documentPath;
+    this.documentPath = mdView.file.path;
+    this.lineBreak = lineBreak;
     this.checkWholeDocument = checkWholeDocument;
   }
 
@@ -47,7 +45,7 @@ export class AgentTexteurAPI extends AgentTexteur {
   }
 
   DonneRetourDeCharriot(): string {
-    return this.edView.state.lineBreak;
+    return this.lineBreak;
   }
 
   DonneTitreDocument(): string {
