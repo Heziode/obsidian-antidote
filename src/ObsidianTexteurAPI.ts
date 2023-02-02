@@ -11,6 +11,7 @@ import {
 
 import {
   AgentTexteur,
+  typeDocument,
   ZoneDeTexte,
 } from './lib/antidote/InterfaceAgentTexteur';
 
@@ -59,6 +60,32 @@ export class AgentTexteurAPI extends AgentTexteur {
       parseURL(this.mdView.app.vault.getResourcePath(this.mdView.file))
         .pathname!
     );
+  }
+
+  DonneTypeDocument(): typeDocument | undefined {
+    if (['tex'].includes(this.mdView.file.extension)) {
+      return 'latex';
+    }
+
+    if (
+      ['markdown', 'mdown', 'mkdn', 'mkd', 'mdwn', 'md'].includes(
+        this.mdView.file.extension
+      )
+    ) {
+      return 'markdown';
+    }
+
+    if (['srt'].includes(this.mdView.file.extension)) {
+      return 'subrip';
+    }
+
+    if (['txt', 'text', 'texte'].includes(this.mdView.file.extension)) {
+      return 'texte';
+    }
+
+    // Unknown file type
+
+    return undefined;
   }
 
   PermetsRetourDeCharriot(): boolean {

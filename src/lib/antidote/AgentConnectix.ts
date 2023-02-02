@@ -68,6 +68,7 @@ export class AgentConnectix {
     if (message == 'init') {
       laReponse.titreDocument = this.monAgent?.DonneTitreDocument();
       laReponse.retourChariot = this.monAgent?.DonneRetourDeCharriot();
+      laReponse.filtreActif = this.monAgent?.DonneTypeDocument();
       laReponse.permetRetourChariot = this.monAgent?.PermetsRetourDeCharriot();
       laReponse.permetEspaceInsecable = this.monAgent?.JeTraiteLesInsecables();
       laReponse.permetEspaceFin = this.monAgent?.EspaceFineDisponible();

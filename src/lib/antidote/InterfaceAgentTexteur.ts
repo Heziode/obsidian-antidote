@@ -1,8 +1,11 @@
+export type typeDocument = 'latex' | 'markdown' | 'subrip' | 'texte';
+
 export abstract class AgentTexteur {
   //Information sur le texteur
   abstract DonneRetourDeCharriot(): string;
   abstract DonneTitreDocument(): string;
   abstract DonneCheminDocument(): string;
+  abstract DonneTypeDocument(): typeDocument | undefined;
   EspaceFineDisponible(): boolean {
     return false;
   }
