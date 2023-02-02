@@ -1,3 +1,23 @@
+# 2.1.1 (Thu Feb 02 2023)
+
+#### 🐛 Bug Fix
+
+- fix: fix plugin crash at Obsidian startup ([@Heziode](https://github.com/Heziode))
+- refactor: clean `AgentTexteurAPI` constructor ([@Heziode](https://github.com/Heziode))
+- refactor: use of `getActiveViewOfType` instead of `getLeaf` ([@Heziode](https://github.com/Heziode))
+- feat: force the markdown filter for Obsidian documents [#10](https://github.com/Heziode/obsidian-antidote/pull/10) ([@Heziode](https://github.com/Heziode))
+- Correct typo in init response. [#11](https://github.com/Heziode/obsidian-antidote/pull/11) ([@Acibi](https://github.com/Acibi))
+- refactor: use of WeakMap to prevent memory leak ([@Heziode](https://github.com/Heziode))
+- style: use of CSS class instead of hard-coded style ([@Heziode](https://github.com/Heziode))
+- style: change the "correct all" icon ([@Heziode](https://github.com/Heziode))
+
+#### Authors: 2
+
+- Quentin Dauprat ([@Heziode](https://github.com/Heziode))
+- Simon Langevin ([@Acibi](https://github.com/Acibi))
+
+---
+
 # 2.1.0 (Sun Jan 22 2023)
 
 #### 🚀 Enhancement
