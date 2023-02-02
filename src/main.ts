@@ -15,22 +15,22 @@ import { paypal } from './assets/PayPal';
 import { t } from './i18n';
 import { AgentConnectix } from './lib/antidote/AgentConnectix';
 
-const AcMap: WeakMap<WorkspaceLeaf, AgentConnectix> = new WeakMap();
+const AcMap: WeakMap<MarkdownView, AgentConnectix> = new WeakMap();
 
 function DonneAgentConnectixPourDocument(
-  td: WorkspaceLeaf,
+  td: MarkdownView,
   checkWholeDocument = false
 ): AgentConnectix {
-  if (td?.view instanceof MarkdownView && td.view.getMode() === 'source') {
+  if (td?.getMode() === 'source') {
     if (!AcMap.has(td)) {
       AcMap.set(
         td,
         new AgentConnectix(
           new AgentTexteurAPI(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (td.view.editor as any).cm,
-            td.view,
-            td.view.file.path,
+            (td.editor as any).cm,
+            td,
+            td.file.path,
             checkWholeDocument
           )
         )
@@ -158,12 +158,9 @@ export default class AntidotePlugin extends Plugin {
 
     this.registerEvent(
       app.workspace.on('layout-change', () => {
-        const leaf = app.workspace.getLeaf();
+        const mdView = app.workspace.getActiveViewOfType(MarkdownView);
 
-        if (
-          leaf?.view instanceof MarkdownView &&
-          leaf.view.getMode() === 'source'
-        ) {
+        if (mdView?.getMode() === 'source') {
           this.showStatusBarIcons();
         } else {
           this.hideStatusBarIcons();
@@ -226,10 +223,9 @@ export default class AntidotePlugin extends Plugin {
   }
 
   public showOrHideIcons() {
-    const leaf = app.workspace.getLeaf();
+    const mdView = app.workspace.getActiveViewOfType(MarkdownView);
 
-    const isDocumentFocus =
-      leaf?.view instanceof MarkdownView && leaf.view.getMode() === 'source';
+    const isDocumentFocus = mdView?.getMode() === 'source';
 
     if (isDocumentFocus && this.settings.showCorrectorIcon) {
       this.correctorStatusBar.removeClass('hide');
@@ -322,17 +318,11 @@ export default class AntidotePlugin extends Plugin {
   }
 
   private readonly handleCorrecteur = async (checkWholeDocument = false) => {
-    const activeLeaf = this.app.workspace.getLeaf();
+    const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
-    if (
-      activeLeaf?.view instanceof MarkdownView &&
-      activeLeaf.view.getMode() === 'source'
-    ) {
+    if (mdView?.getMode() === 'source') {
       try {
-        const AC = DonneAgentConnectixPourDocument(
-          activeLeaf,
-          checkWholeDocument
-        );
+        const AC = DonneAgentConnectixPourDocument(mdView, checkWholeDocument);
         try {
           await AC.Initialise();
         } catch (e) {
@@ -347,14 +337,11 @@ export default class AntidotePlugin extends Plugin {
   };
 
   private readonly handleDictionnaire = async () => {
-    const activeLeaf = this.app.workspace.getLeaf();
+    const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
-    if (
-      activeLeaf?.view instanceof MarkdownView &&
-      activeLeaf.view.getMode() === 'source'
-    ) {
+    if (mdView?.getMode() === 'source') {
       try {
-        const AC = DonneAgentConnectixPourDocument(activeLeaf);
+        const AC = DonneAgentConnectixPourDocument(mdView);
         try {
           await AC.Initialise();
         } catch (e) {
@@ -369,14 +356,11 @@ export default class AntidotePlugin extends Plugin {
   };
 
   private readonly handleGuide = async () => {
-    const activeLeaf = this.app.workspace.getLeaf();
+    const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
-    if (
-      activeLeaf?.view instanceof MarkdownView &&
-      activeLeaf.view.getMode() === 'source'
-    ) {
+    if (mdView?.getMode() === 'source') {
       try {
-        const AC = DonneAgentConnectixPourDocument(activeLeaf);
+        const AC = DonneAgentConnectixPourDocument(mdView);
         try {
           await AC.Initialise();
         } catch (e) {
