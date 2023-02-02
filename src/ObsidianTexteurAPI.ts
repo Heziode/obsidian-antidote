@@ -11,6 +11,7 @@ import {
 
 import {
   AgentTexteur,
+  typeDocument,
   ZoneDeTexte,
 } from './lib/antidote/InterfaceAgentTexteur';
 
@@ -35,7 +36,7 @@ export class AgentTexteurAPI extends AgentTexteur {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  Initialise(): void { }
+  Initialise(): void {}
 
   private PositionAbsolue(pos: EditorPosition): number {
     return this.mdView.editor.posToOffset(pos);
@@ -61,8 +62,30 @@ export class AgentTexteurAPI extends AgentTexteur {
     );
   }
 
-  DonneTypeDocument(): string {
-    return "markdown";
+  DonneTypeDocument(): typeDocument | undefined {
+    if (['tex'].includes(this.mdView.file.extension)) {
+      return 'latex';
+    }
+
+    if (
+      ['markdown', 'mdown', 'mkdn', 'mkd', 'mdwn', 'md'].includes(
+        this.mdView.file.extension
+      )
+    ) {
+      return 'markdown';
+    }
+
+    if (['srt'].includes(this.mdView.file.extension)) {
+      return 'subrip';
+    }
+
+    if (['txt', 'text', 'texte'].includes(this.mdView.file.extension)) {
+      return 'texte';
+    }
+
+    // Unknown file type
+
+    return undefined;
   }
 
   PermetsRetourDeCharriot(): boolean {
@@ -77,7 +100,7 @@ export class AgentTexteurAPI extends AgentTexteur {
       this.checkWholeDocument &&
       selections.length === 1 &&
       this.PositionAbsolue(selections[0].anchor) ===
-      this.PositionAbsolue(selections[0].head)
+        this.PositionAbsolue(selections[0].head)
     ) {
       return new Promise<ZoneDeTexte[]>((resolve) =>
         resolve([new ZoneDeTexte(text, 0, 0, '0')])
