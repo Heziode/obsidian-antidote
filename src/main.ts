@@ -139,7 +139,9 @@ export default class AntidotePlugin extends Plugin {
       this.handleDictionnaire();
     });
 
-    this.showOrHideIcons();
+    app.workspace.onLayoutReady(() => {
+      this.showOrHideIcons();
+    });
 
     // Events //
 
