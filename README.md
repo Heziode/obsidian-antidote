@@ -7,7 +7,7 @@ Antidote supports these languages:
 - English
 - French
 
-This plugin works with Antidote 10 (using Connectix version 11 or higher) and higher, and Antidote web, on macOS, Linux and Windows.
+This plugin works with Antidote 10 (using Connectix version 11 or higher) and higher, and Antidote web, on macOS (11 and higher), Linux and Windows.
 
 **This plugin does not work on smartphones.**
 
@@ -16,6 +16,10 @@ This plugin works with Antidote 10 (using Connectix version 11 or higher) and hi
 ![](./assets/antidote.png)
 
 ## How to install
+
+### From Obsidian
+
+This plugin can be found in Obsidian's community plugins library, `Settings > Community Plugins > Browse`: [antidote-grammar-checker-integration](https://obsidian.md/plugins?id=antidote-grammar-checker-integration)
 
 ### Manual installation
 
@@ -44,7 +48,9 @@ The "Correct All" send the whole document to Antidote, or, the selection, wherea
 
 Antidote 10 is the latest supported version of Antidote on this OS. Accordingly, the Connectix version 10 installed with this version is not supported.
 
-In order to use Antidote 10 (or web) with this plugin, you will have to install the latest Connectix (version 11 or higher). Connectix is the bridge between Obsidian and Antidote (10, 11+, web), so by keeping Antidote 10 with Connectix 11, you will be able to use this plugin.
+In order to use Antidote 10 (or web) with this plugin, you will have to install the latest version of Connectix (version 11 or higher). Connectix is the bridge between Obsidian and Antidote (10, 11+, web), so by keeping Antidote 10 with Connectix 11, you will be able to use this plugin.
+
+You can download Connectix 11 from your [Client Portal](https://services.druide.com/client/), under the "Useful links" section: "Connectix Utility for Antidote Web"
 
 ## Support this plugin
 
