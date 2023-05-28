@@ -152,7 +152,7 @@ export class AgentConnectix {
 
   private async InitWS() {
     let lePortWS = this.prefs.port;
-    this.ws = new WebSocket('ws://localhost:' + lePortWS);
+    this.ws = new WebSocket('ws://127.0.0.1:' + lePortWS);
     let moiMeme = this;
     this.ws.on('message', (data: any) => {
       moiMeme.RecoisMessage(data);
@@ -160,12 +160,13 @@ export class AgentConnectix {
     this.ws.on('close', () => {
       moiMeme.estInit = false;
     });
-    this.ws.on('error', () => {
-      moiMeme.estInit = false;
-    });
-    let Promesse = new Promise<boolean>((resolve) => {
+    let Promesse = new Promise<boolean>((resolve, reject) => {
       this.ws.on('open', () => {
         resolve(true);
+      });
+      this.ws.on('error', (error) => {
+        moiMeme.estInit = false;
+        reject(error);
       });
     });
     let retour = await Promesse;
@@ -222,14 +223,16 @@ export class AgentConnectix {
     }
     let AgentConsole = require('child_process').spawn(path, ['--api']);
 
-    let Promesse = new Promise<boolean>((resolve) => {
-      AgentConsole.stdout.on('data', (data: any) => {
+    let Promesse = new Promise<boolean>((resolve, reject) => {
+      AgentConsole.stdout.on('data', async (data: any) => {
         let str: String = data.toString('utf8');
 
         this.prefs = JSON.parse(str.substring(str.indexOf('{'), str.length));
-        this.InitWS().then((retour) => {
-          resolve(retour);
-        });
+        try {
+          resolve(await this.InitWS());
+        } catch (e) {
+          reject(e);
+        };
       });
     });
 

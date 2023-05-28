@@ -329,6 +329,7 @@ export default class AntidotePlugin extends Plugin {
           await AC.Initialise();
         } catch (e) {
           new Notice(t('error.antidote_not_found'));
+          console.error(e);
           return;
         }
         AC.LanceCorrecteur();
