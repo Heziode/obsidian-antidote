@@ -1,3 +1,15 @@
+# 2.1.2 (Sun May 28 2023)
+
+#### 🐛 Bug Fix
+
+- fix: fix issue related to connection with Connectix Agent ([@Heziode](https://github.com/Heziode))
+
+#### Authors: 1
+
+- Quentin Dauprat ([@Heziode](https://github.com/Heziode))
+
+---
+
 # 2.1.1 (Thu Feb 02 2023)
 
 #### 🐛 Bug Fix
