@@ -13,5 +13,6 @@
   "command.corrector.label": "Corriger avec Antidote",
   "command.dictionary.label": "Ouvrir le dictionnaire d'Antidote",
   "command.guide.label": "Ouvrir le guide d'Antidote",
-  "error.antidote_not_found": "Impossible de communiquer avec l'Agent Connectix (Antidote)"
+  "error.antidote_not_found": "Impossible de communiquer avec l'Agent Connectix (Antidote)",
+  "error.antidote_not_installed": "Antidote est introuvable. Ce plugin nécessite qu'Antidote et son agent Connectix soient installés sur cet ordinateur."
 }

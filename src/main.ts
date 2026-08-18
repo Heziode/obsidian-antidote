@@ -14,9 +14,26 @@ import { AgentTexteurAPI } from './ObsidianTexteurAPI';
 import { buyMeACoffee } from './assets/BuyMeACoffee';
 import { paypal } from './assets/PayPal';
 import { t } from './i18n';
-import { AgentConnectix } from './lib/antidote/AgentConnectix';
+import {
+  AgentConnectix,
+  AgentIntrouvable,
+} from './lib/antidote/AgentConnectix';
 
 const AcMap: WeakMap<MarkdownView, AgentConnectix> = new WeakMap();
+
+/**
+ * Tell the user why a command could not reach Antidote. Not having Antidote
+ * installed at all is by far the most common cause, and deserves an answer of
+ * its own rather than a communication error.
+ */
+function showInitialisationError(e: unknown) {
+  new Notice(
+    e instanceof AgentIntrouvable
+      ? t('error.antidote_not_installed')
+      : t('error.antidote_not_found')
+  );
+  console.error(e);
+}
 
 function DonneAgentConnectixPourDocument(
   td: MarkdownView,
@@ -328,8 +345,7 @@ export default class AntidotePlugin extends Plugin {
         try {
           await AC.Initialise();
         } catch (e) {
-          new Notice(t('error.antidote_not_found'));
-          console.error(e);
+          showInitialisationError(e);
           return;
         }
         AC.LanceCorrecteur();
@@ -348,8 +364,7 @@ export default class AntidotePlugin extends Plugin {
         try {
           await AC.Initialise();
         } catch (e) {
-          new Notice(t('error.antidote_not_found'));
-          console.error(e);
+          showInitialisationError(e);
           return;
         }
         AC.LanceDictionnaire();
@@ -368,8 +383,7 @@ export default class AntidotePlugin extends Plugin {
         try {
           await AC.Initialise();
         } catch (e) {
-          new Notice(t('error.antidote_not_found'));
-          console.error(e);
+          showInitialisationError(e);
           return;
         }
         AC.LanceGuide();

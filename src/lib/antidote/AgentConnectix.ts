@@ -17,6 +17,13 @@ interface ReglagesAgent {
   port: number;
 }
 
+/**
+ * The console agent is nowhere to be found. Antidote and its Connectix agent
+ * are most likely not installed, which is a different problem from an agent
+ * that is there but refuses to talk.
+ */
+export class AgentIntrouvable extends Error {}
+
 function aRecuToutLesPaquets(
   laListe: Array<string>,
   _leNombrePaquet: number
@@ -246,7 +253,7 @@ export class AgentConnectix {
   private async ObtiensReglages() {
     let path = await this.DonnePathAgentConsole();
     if (path === '' || !existsSync(path as PathLike)) {
-      throw Error('Connectix Agent not found');
+      throw new AgentIntrouvable('Connectix Agent not found');
     }
 
     let AgentConsole = spawn(path, ['--api']);
