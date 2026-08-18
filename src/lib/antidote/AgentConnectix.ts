@@ -2,7 +2,20 @@ import WebSocket from 'ws';
 import * as agTexteur from './InterfaceAgentTexteur';
 import { readPreference } from './Preferences';
 import { regReader } from './Registry';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { existsSync, PathLike } from 'fs';
+
+/**
+ * The console agent answers its settings as soon as it is asked. Past that
+ * delay it never will, and waiting any longer would leave the command hanging
+ * without ever telling the user that something went wrong.
+ */
+const DELAI_REPONSE_AGENT_MS = 10000;
+
+/** Settings answered by the console agent. Only the WebSocket port is used. */
+interface ReglagesAgent {
+  port: number;
+}
 
 function aRecuToutLesPaquets(
   laListe: Array<string>,
@@ -19,6 +32,7 @@ export class AgentConnectix {
   private ws: WebSocket;
   private monAgent: agTexteur.AgentTexteur | undefined;
   private estInit: boolean;
+  private initialisation: Promise<boolean> | undefined;
 
   private listePaquetsRecu: Array<string>;
 
@@ -28,13 +42,25 @@ export class AgentConnectix {
     this.ws = {} as WebSocket;
     this.listePaquetsRecu = new Array(0);
     this.estInit = false;
+    this.initialisation = undefined;
   }
 
   async Initialise() {
     if (this.estInit) return true;
-    let retour = await this.ObtiensReglages();
-    this.estInit = true;
-    return retour;
+
+    // Two commands fired in a row must share the same attempt, otherwise each
+    // of them starts its own agent and its own connection.
+    if (this.initialisation === undefined) {
+      this.initialisation = this.ObtiensReglages();
+    }
+
+    try {
+      let retour = await this.initialisation;
+      this.estInit = true;
+      return retour;
+    } finally {
+      this.initialisation = undefined;
+    }
   }
 
   LanceCorrecteur(): void {
@@ -222,23 +248,93 @@ export class AgentConnectix {
     if (path === '' || !existsSync(path as PathLike)) {
       throw Error('Connectix Agent not found');
     }
-    let AgentConsole = require('child_process').spawn(path, ['--api']);
 
-    let Promesse = new Promise<boolean>((resolve, reject) => {
-      AgentConsole.stdout.on('data', async (data: any) => {
-        let str: String = data.toString('utf8');
+    let AgentConsole = spawn(path, ['--api']);
+    try {
+      this.prefs = await this.LisReglagesAgent(AgentConsole);
+    } catch (e) {
+      // Nothing usable will ever come out of that agent: do not leave it behind.
+      AgentConsole.kill();
+      throw e;
+    }
 
-        this.prefs = JSON.parse(str.substring(str.indexOf('{'), str.length));
+    return this.InitWS();
+  }
+
+  /**
+   * Ask the console agent for its settings, the WebSocket port among them.
+   *
+   * The answer is written on stdout and may be split over several chunks, so it
+   * is accumulated until it parses. Every way the agent has to not answer -
+   * refusing to start, dying, staying silent - rejects the promise, so that a
+   * command never waits forever on an agent that will never reply.
+   */
+  private LisReglagesAgent(
+    AgentConsole: ChildProcessWithoutNullStreams
+  ): Promise<ReglagesAgent> {
+    return new Promise((resolve, reject) => {
+      let laSortie = '';
+      let lesErreurs = '';
+      let estTermine = false;
+
+      const Termine = () => {
+        estTermine = true;
+        clearTimeout(laMinuterie);
+        AgentConsole.stdout.removeListener('data', SurSortie);
+        AgentConsole.stderr.removeListener('data', SurErreur);
+      };
+
+      const Reussi = (reglages: ReglagesAgent) => {
+        if (estTermine) return;
+        Termine();
+        resolve(reglages);
+      };
+
+      const Echoue = (erreur: Error) => {
+        if (estTermine) return;
+        Termine();
+        reject(erreur);
+      };
+
+      const SurSortie = (donnees: Buffer) => {
+        laSortie += donnees.toString('utf8');
+        let debut = laSortie.indexOf('{');
+        if (debut === -1) return;
+
+        let lesReglages: ReglagesAgent;
         try {
-          resolve(await this.InitWS());
+          lesReglages = JSON.parse(laSortie.substring(debut));
         } catch (e) {
-          reject(e);
+          // The answer is truncated: wait for the rest of it.
+          return;
         }
-      });
-    });
+        Reussi(lesReglages);
+      };
 
-    AgentConsole.stdin.write('API');
-    let retour = await Promesse;
-    return retour;
+      const SurErreur = (donnees: Buffer) => {
+        lesErreurs += donnees.toString('utf8');
+      };
+
+      const laMinuterie = setTimeout(
+        () => Echoue(Error('Connectix Agent did not answer')),
+        DELAI_REPONSE_AGENT_MS
+      );
+
+      AgentConsole.stdout.on('data', SurSortie);
+      AgentConsole.stderr.on('data', SurErreur);
+      AgentConsole.on('error', Echoue);
+      AgentConsole.stdin.on('error', Echoue);
+      AgentConsole.on('close', (code: number | null) => {
+        let laRaison = lesErreurs.trim();
+        Echoue(
+          Error(
+            `Connectix Agent stopped before answering (code ${code})` +
+              (laRaison === '' ? '' : `: ${laRaison}`)
+          )
+        );
+      });
+
+      AgentConsole.stdin.write('API');
+    });
   }
 }
