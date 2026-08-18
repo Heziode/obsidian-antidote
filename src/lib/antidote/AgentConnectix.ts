@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import * as agTexteur from './InterfaceAgentTexteur';
+import { readPreference } from './Preferences';
 import { regReader } from './Registry';
 import { existsSync, PathLike } from 'fs';
 
@@ -130,14 +131,14 @@ export class AgentConnectix {
 
   private async DonnePathAgentConsole() {
     if (process.platform === 'darwin') {
-      const plist = require('bplist-parser');
-      const homedir = require('os').homedir();
-      let data;
-      let xml = await plist.parseFile(
-        homedir + '/Library/Preferences/com.druide.Connectix.plist'
+      const dossierApplication = await readPreference(
+        'com.druide.Connectix',
+        'DossierApplication'
       );
-      data = xml[0].DossierApplication;
-      return data + '/Contents/SharedSupport/AgentConnectixConsole';
+      if (dossierApplication === '') return '';
+      return (
+        dossierApplication + '/Contents/SharedSupport/AgentConnectixConsole'
+      );
     } else if (process.platform === 'linux')
       return '/usr/local/bin/AgentConnectixConsole';
     else if (process.platform === 'win32') {
@@ -232,7 +233,7 @@ export class AgentConnectix {
           resolve(await this.InitWS());
         } catch (e) {
           reject(e);
-        };
+        }
       });
     });
 
