@@ -1,3 +1,24 @@
+# 2.2.0 (Tue Aug 18 2026)
+
+#### 🚀 Enhancement
+
+- feat: tell the user when Antidote itself is not installed ([@Heziode](https://github.com/Heziode))
+
+#### 🐛 Bug Fix
+
+- fix: read Connectix preferences without hitting the bplist object limit [#18](https://github.com/Heziode/obsidian-antidote/issues/18) ([@Heziode](https://github.com/Heziode))
+- fix: always settle the Connectix agent initialisation ([@Heziode](https://github.com/Heziode))
+
+#### 📝 Documentation
+
+- docs: document the requirements, Connectix 11 and troubleshooting [#15](https://github.com/Heziode/obsidian-antidote/issues/15) ([@Heziode](https://github.com/Heziode))
+
+#### Authors: 1
+
+- Quentin Dauprat ([@Heziode](https://github.com/Heziode))
+
+---
+
 # 2.1.2 (Sun May 28 2023)
 
 #### 🐛 Bug Fix
