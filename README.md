@@ -19,7 +19,7 @@ This plugin works with Antidote 10 (using Connectix version 11 or higher) and hi
 
 Antidote is a separate application, sold by [Druide](https://www.druide.com/). This plugin is only a bridge between Obsidian and Antidote: it corrects nothing by itself, and it cannot install anything for you. You need, on the same computer as Obsidian:
 
-- A licence for Antidote 10 or higher, or Antidote Web ([first purchase](https://www.antidote.info/en/store/first-purchase))
+- A license for Antidote 10 or higher, or Antidote Web ([first purchase](https://www.antidote.info/en/store/first-purchase))
 - Antidote installed
 - The Connectix agent, in version 11 or higher. Connectix is what links Antidote to its integrations (Word, VS Code, your browser, Obsidian, etc.), and it is normally installed along with Antidote
 
