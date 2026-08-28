@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile } from 'node:fs/promises';
+import { copyFile, mkdir } from 'node:fs/promises';
 import { builtinModules } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
@@ -34,17 +34,18 @@ const external = [
 
 /**
  * Where a development build is copied so that Obsidian picks it up. Answers
- * null when no vault was named, in which case the build stays in `dist`.
+ * null when no directory was named, in which case the build stays in `dist`.
+ *
+ * The full destination is asked for rather than a vault root: the folder a
+ * vault keeps its configuration in is named by the user, so nothing under it
+ * can be guessed from here.
  */
-async function DonneDossierInstallation() {
-  const drapeau = process.argv.indexOf('--vault');
-  const vault =
-    drapeau === -1 ? process.env.OBSIDIAN_VAULT : process.argv[drapeau + 1];
+function DonneDossierInstallation() {
+  const drapeau = process.argv.indexOf('--plugin-dir');
 
-  if (!vault) return null;
-
-  const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
-  return path.join(vault, '.obsidian', 'plugins', manifest.id);
+  return drapeau === -1
+    ? (process.env.OBSIDIAN_PLUGIN_DIR ?? null)
+    : (process.argv[drapeau + 1] ?? null);
 }
 
 /** Put the three files Obsidian loads where they are expected. */
@@ -59,7 +60,7 @@ async function Publie(dossier) {
   }
 }
 
-const dossierInstallation = await DonneDossierInstallation();
+const dossierInstallation = DonneDossierInstallation();
 
 const options = {
   entryPoints: ['src/main.ts', 'src/styles.css'],

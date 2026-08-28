@@ -8,4 +8,4 @@ It is highly recommended to run your tests in a "Sandbox" Obsidian vault, either
 
 Inside this vault, install [Hot-Reload](https://github.com/pjeby/hot-reload) plugin in order to enhance your development experience.
 
-You can now run `npm run dev` to start developing. It builds into `dist/` and rebuilds on every change. To have it installed into your sandbox vault at the same time, run `npm run dev -- --vault /path/to/your/vault`, or set the `OBSIDIAN_VAULT` environment variable to that path.
+You can now run `npm run dev` to start developing. It builds into `dist/` and rebuilds on every change. To have it installed into your sandbox vault at the same time, run `npm run dev -- --plugin-dir /path/to/vault/<your config folder>/plugins/antidote-grammar-checker-integration`, or set the `OBSIDIAN_PLUGIN_DIR` environment variable to that path.
