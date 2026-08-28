@@ -1,9 +1,11 @@
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { existsSync } from 'fs';
+
 import WebSocket from 'ws';
+
 import * as agTexteur from './InterfaceAgentTexteur';
 import { readPreference } from './Preferences';
 import { regReader } from './Registry';
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import { existsSync, PathLike } from 'fs';
 
 /**
  * The console agent answers its settings as soon as it is asked. Past that
@@ -18,41 +20,97 @@ interface ReglagesAgent {
 }
 
 /**
+ * Envelope every message travels in. A payload too large for a single frame is
+ * cut into `totalPaquet` packets, numbered from one.
+ */
+interface PaquetConnectix {
+  idPaquet: number;
+  totalPaquet: number;
+  donnees: string;
+}
+
+/** Fields carried by a request, each one specific to the message it belongs to. */
+interface DonneesRequete {
+  contexte?: string;
+  idZone?: string;
+  nouvelleChaine?: string;
+  positionDebut?: number;
+  positionFin?: number;
+  positionRemplacementDebut?: number;
+  positionRemplacementFin?: number;
+}
+
+/** A request coming from Antidote, once reassembled. */
+interface RequeteConnectix {
+  donnees?: DonneesRequete;
+  idMessage?: number;
+  message?: string;
+}
+
+/** The answer to a request. Every field but `idMessage` is message specific. */
+interface ReponseConnectix {
+  donnee?: boolean;
+  donnees?: agTexteur.ZoneDeTexteJSONAPI[] | boolean;
+  filtreActif?: agTexteur.typeDocument;
+  idMessage?: number;
+  permetEspaceFin?: boolean;
+  permetEspaceInsecable?: boolean;
+  permetRetourChariot?: boolean;
+  remplaceSansSelection?: boolean;
+  retourChariot?: string;
+  titreDocument?: string;
+}
+
+/** An order to bring one of the Antidote tools up. */
+interface RequeteLanceOutil {
+  message: 'LanceOutil';
+  outilApi: 'Correcteur' | 'Dictionnaires' | 'Guides';
+}
+
+/**
  * The console agent is nowhere to be found. Antidote and its Connectix agent
  * are most likely not installed, which is a different problem from an agent
  * that is there but refuses to talk.
  */
 export class AgentIntrouvable extends Error {}
 
-function aRecuToutLesPaquets(
-  laListe: Array<string>,
-  _leNombrePaquet: number
-): boolean {
-  for (let item of laListe) {
+/**
+ * Read a frame as text. A frame normally arrives as a `Buffer`, but `ws` also
+ * hands out array buffers and buffer slices, whose default stringification is
+ * `[object ArrayBuffer]` rather than the payload they carry.
+ */
+function DecodeTrame(data: WebSocket.RawData): string {
+  if (Array.isArray(data)) return Buffer.concat(data).toString('utf8');
+  if (Buffer.isBuffer(data)) return data.toString('utf8');
+  return Buffer.from(data).toString('utf8');
+}
+
+function aRecuToutLesPaquets(laListe: string[]): boolean {
+  for (const item of laListe) {
     if (item.length == 0) return false;
   }
   return true;
 }
 
 export class AgentConnectix {
-  private prefs: any;
-  private ws: WebSocket;
+  private prefs: ReglagesAgent;
+  private ws: WebSocket | undefined;
   private monAgent: agTexteur.AgentTexteur | undefined;
   private estInit: boolean;
   private initialisation: Promise<boolean> | undefined;
 
-  private listePaquetsRecu: Array<string>;
+  private listePaquetsRecu: string[];
 
   constructor(agent: agTexteur.AgentTexteur) {
     this.monAgent = agent;
-    this.prefs = {} as JSON;
-    this.ws = {} as WebSocket;
-    this.listePaquetsRecu = new Array(0);
+    this.prefs = { port: 0 };
+    this.ws = undefined;
+    this.listePaquetsRecu = [];
     this.estInit = false;
     this.initialisation = undefined;
   }
 
-  async Initialise() {
+  async Initialise(): Promise<boolean> {
     if (this.estInit) return true;
 
     // Two commands fired in a row must share the same attempt, otherwise each
@@ -62,7 +120,7 @@ export class AgentConnectix {
     }
 
     try {
-      let retour = await this.initialisation;
+      const retour = await this.initialisation;
       this.estInit = true;
       return retour;
     } finally {
@@ -71,98 +129,113 @@ export class AgentConnectix {
   }
 
   LanceCorrecteur(): void {
-    let laRequete = {
-      message: 'LanceOutil',
-      outilApi: 'Correcteur',
-    };
+    this.LanceOutil('Correcteur');
+  }
+
+  LanceDictionnaire(): void {
+    this.LanceOutil('Dictionnaires');
+  }
+
+  LanceGuide(): void {
+    this.LanceOutil('Guides');
+  }
+
+  private LanceOutil(outilApi: RequeteLanceOutil['outilApi']): void {
+    const laRequete: RequeteLanceOutil = { message: 'LanceOutil', outilApi };
     this.EnvoieMessage(JSON.stringify(laRequete));
   }
 
-  LanceDictionnaire() {
-    let laRequete = {
-      message: 'LanceOutil',
-      outilApi: 'Dictionnaires',
-    };
-    this.EnvoieMessage(JSON.stringify(laRequete));
-  }
+  GereMessage(data: RequeteConnectix): void {
+    const idMessage = data.idMessage;
+    const donnees = data.donnees;
 
-  LanceGuide() {
-    let laRequete = {
-      message: 'LanceOutil',
-      outilApi: 'Guides',
-    };
-    this.EnvoieMessage(JSON.stringify(laRequete));
-  }
-
-  GereMessage(data: any) {
-    let laReponse: any = {};
-    laReponse.idMessage = data.idMessage;
-
-    let message = data.message;
-    if (message == 'init') {
-      laReponse.titreDocument = this.monAgent?.DonneTitreDocument();
-      laReponse.retourChariot = this.monAgent?.DonneRetourDeCharriot();
-      laReponse.filtreActif = this.monAgent?.DonneTypeDocument();
-      laReponse.permetRetourChariot = this.monAgent?.PermetsRetourDeCharriot();
-      laReponse.permetEspaceInsecable = this.monAgent?.JeTraiteLesInsecables();
-      laReponse.permetEspaceFin = this.monAgent?.EspaceFineDisponible();
-      laReponse.remplaceSansSelection = true;
-      this.EnvoieMessage(JSON.stringify(laReponse));
-    } else if (data.message == 'cheminDocument') {
-      laReponse.donnee = !this.monAgent?.DonneCheminDocument();
-      this.EnvoieMessage(JSON.stringify(laReponse));
-    } else if (data.message == 'donneZonesTexte') {
-      this.monAgent?.DonneLesZonesACorriger().then((lesZones) => {
-        let lesZonesEnJSON: agTexteur.ZoneDeTexteJSONAPI[] = new Array();
-
-        lesZones?.forEach((element) => {
-          lesZonesEnJSON.push(element.toJsonAPI());
+    switch (data.message) {
+      case 'init':
+        this.EnvoieReponse({
+          idMessage,
+          titreDocument: this.monAgent?.DonneTitreDocument(),
+          retourChariot: this.monAgent?.DonneRetourDeCharriot(),
+          filtreActif: this.monAgent?.DonneTypeDocument(),
+          permetRetourChariot: this.monAgent?.PermetsRetourDeCharriot(),
+          permetEspaceInsecable: this.monAgent?.JeTraiteLesInsecables(),
+          permetEspaceFin: this.monAgent?.EspaceFineDisponible(),
+          remplaceSansSelection: true,
         });
-        laReponse.donnees = lesZonesEnJSON;
-        this.EnvoieMessage(JSON.stringify(laReponse));
-      });
-    } else if (data.message == 'docEstDisponible') {
-      laReponse.donnees = this.monAgent?.DocEstDisponible();
+        break;
 
-      this.EnvoieMessage(JSON.stringify(laReponse));
-    } else if (data.message == 'editionPossible') {
-      let idZone: string = data.donnees.idZone;
-      let chaine: string = data.donnees.contexte;
-      let debut: number = data.donnees.positionDebut;
-      let fin: number = data.donnees.positionFin;
-
-      laReponse.donnees = this.monAgent?.PeutCorriger(
-        idZone,
-        debut,
-        fin,
-        chaine
-      );
-      this.EnvoieMessage(JSON.stringify(laReponse));
-    } else if (data.message == 'remplace') {
-      let idZone: string = data.donnees.idZone;
-      let chaine: string = data.donnees.nouvelleChaine;
-      let debut: number = data.donnees.positionRemplacementDebut;
-      let fin: number = data.donnees.positionRemplacementFin;
-
-      this.monAgent
-        ?.CorrigeDansTexteur(idZone, debut, fin, chaine, false)
-        .then(() => {
-          this.monAgent?.MetsFocusSurLeDocument();
-          laReponse.donnees = true;
-          this.EnvoieMessage(JSON.stringify(laReponse));
+      case 'cheminDocument':
+        this.EnvoieReponse({
+          idMessage,
+          donnee: !this.monAgent?.DonneCheminDocument(),
         });
-    } else if (data.message == 'selectionne') {
-      let idZone: string = data.donnees.idZone;
-      let debut: number = data.donnees.positionDebut;
-      let fin: number = data.donnees.positionFin;
+        break;
 
-      this.monAgent?.SelectionneIntervalle(idZone, debut, fin);
-    } else if (data.message == 'retourneAuDocument') {
-      this.monAgent?.RetourneAuTexteur();
+      case 'donneZonesTexte':
+        this.monAgent
+          ?.DonneLesZonesACorriger()
+          .then((lesZones) => {
+            this.EnvoieReponse({
+              idMessage,
+              donnees: lesZones.map((zone) => zone.toJsonAPI()),
+            });
+          })
+          .catch((e: unknown) => {
+            console.error(e);
+          });
+        break;
+
+      case 'docEstDisponible':
+        this.EnvoieReponse({
+          idMessage,
+          donnees: this.monAgent?.DocEstDisponible(),
+        });
+        break;
+
+      case 'editionPossible':
+        this.EnvoieReponse({
+          idMessage,
+          donnees: this.monAgent?.PeutCorriger(
+            donnees?.idZone ?? '',
+            donnees?.positionDebut ?? 0,
+            donnees?.positionFin ?? 0,
+            donnees?.contexte ?? ''
+          ),
+        });
+        break;
+
+      case 'remplace':
+        this.monAgent
+          ?.CorrigeDansTexteur(
+            donnees?.idZone ?? '',
+            donnees?.positionRemplacementDebut ?? 0,
+            donnees?.positionRemplacementFin ?? 0,
+            donnees?.nouvelleChaine ?? '',
+            false
+          )
+          .then(() => {
+            this.monAgent?.MetsFocusSurLeDocument();
+            this.EnvoieReponse({ idMessage, donnees: true });
+          })
+          .catch((e: unknown) => {
+            console.error(e);
+          });
+        break;
+
+      case 'selectionne':
+        this.monAgent?.SelectionneIntervalle(
+          donnees?.idZone ?? '',
+          donnees?.positionDebut ?? 0,
+          donnees?.positionFin ?? 0
+        );
+        break;
+
+      case 'retourneAuDocument':
+        this.monAgent?.RetourneAuTexteur();
+        break;
     }
   }
 
-  private async DonnePathAgentConsole() {
+  private async DonnePathAgentConsole(): Promise<string> {
     if (process.platform === 'darwin') {
       const dossierApplication = await readPreference(
         'com.druide.Connectix',
@@ -175,7 +248,7 @@ export class AgentConnectix {
     } else if (process.platform === 'linux')
       return '/usr/local/bin/AgentConnectixConsole';
     else if (process.platform === 'win32') {
-      let retour = regReader(
+      const retour = regReader(
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\Druide informatique inc.\\Connectix',
         'DossierConnectix'
       );
@@ -184,64 +257,68 @@ export class AgentConnectix {
     return '';
   }
 
-  private async InitWS() {
-    let lePortWS = this.prefs.port;
-    this.ws = new WebSocket('ws://127.0.0.1:' + lePortWS);
-    let moiMeme = this;
-    this.ws.on('message', (data: any) => {
-      moiMeme.RecoisMessage(data);
+  private InitWS(): Promise<boolean> {
+    const ws = new WebSocket('ws://127.0.0.1:' + String(this.prefs.port));
+    this.ws = ws;
+
+    ws.on('message', (data) => {
+      this.RecoisMessage(data);
     });
-    this.ws.on('close', () => {
-      moiMeme.estInit = false;
+    ws.on('close', () => {
+      this.estInit = false;
     });
-    let Promesse = new Promise<boolean>((resolve, reject) => {
-      this.ws.on('open', () => {
+
+    return new Promise<boolean>((resolve, reject) => {
+      ws.on('open', () => {
         resolve(true);
       });
-      this.ws.on('error', (error) => {
-        moiMeme.estInit = false;
+      ws.on('error', (error) => {
+        this.estInit = false;
         reject(error);
       });
     });
-    let retour = await Promesse;
-    return retour;
   }
 
-  private Digere(data: any) {
-    if ('idPaquet' in data) {
-      let lesDonnees: string = data.donnees;
-      let leNombrePaquet: number = data.totalPaquet;
-      let leNumeroPaquet: number = data.idPaquet;
+  private Digere(data: unknown): void {
+    if (typeof data !== 'object' || data === null) return;
 
-      if (this.listePaquetsRecu.length < leNombrePaquet) {
-        this.listePaquetsRecu = new Array(leNombrePaquet);
-      }
-
-      this.listePaquetsRecu[leNumeroPaquet - 1] = lesDonnees;
-
-      if (aRecuToutLesPaquets(this.listePaquetsRecu, leNombrePaquet)) {
-        let leMessageStr: string = this.listePaquetsRecu.join('');
-        this.listePaquetsRecu = new Array(0);
-        this.GereMessage(JSON.parse(leMessageStr));
-      }
-    } else {
+    if (!('idPaquet' in data)) {
       this.GereMessage(data);
+      return;
     }
+
+    const paquet = data as PaquetConnectix;
+
+    if (this.listePaquetsRecu.length < paquet.totalPaquet) {
+      // Filled rather than left sparse: a hole reads back as `undefined`, which
+      // the completeness check below cannot measure.
+      this.listePaquetsRecu = new Array<string>(paquet.totalPaquet).fill('');
+    }
+
+    this.listePaquetsRecu[paquet.idPaquet - 1] = paquet.donnees;
+
+    if (!aRecuToutLesPaquets(this.listePaquetsRecu)) return;
+
+    const leMessageStr: string = this.listePaquetsRecu.join('');
+    this.listePaquetsRecu = [];
+
+    const leMessage: unknown = JSON.parse(leMessageStr);
+    this.GereMessage(leMessage as RequeteConnectix);
   }
 
-  private RecoisMessage(data: any) {
-    let leMsg = JSON.parse(data);
+  private RecoisMessage(data: WebSocket.RawData): void {
+    const leMsg: unknown = JSON.parse(DecodeTrame(data));
     this.Digere(leMsg);
   }
 
-  private EnvoiePaquet(paquet: string) {
-    if (this.ws.readyState == this.ws.OPEN) {
+  private EnvoiePaquet(paquet: string): void {
+    if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(paquet);
     }
   }
 
-  private EnvoieMessage(msg: string) {
-    let laRequete = {
+  private EnvoieMessage(msg: string): void {
+    const laRequete: PaquetConnectix = {
       idPaquet: 0,
       totalPaquet: 1,
       donnees: msg,
@@ -250,13 +327,17 @@ export class AgentConnectix {
     this.EnvoiePaquet(JSON.stringify(laRequete));
   }
 
-  private async ObtiensReglages() {
-    let path = await this.DonnePathAgentConsole();
-    if (path === '' || !existsSync(path as PathLike)) {
+  private EnvoieReponse(reponse: ReponseConnectix): void {
+    this.EnvoieMessage(JSON.stringify(reponse));
+  }
+
+  private async ObtiensReglages(): Promise<boolean> {
+    const path = await this.DonnePathAgentConsole();
+    if (path === '' || !existsSync(path)) {
       throw new AgentIntrouvable('Connectix Agent not found');
     }
 
-    let AgentConsole = spawn(path, ['--api']);
+    const AgentConsole = spawn(path, ['--api']);
     try {
       this.prefs = await this.LisReglagesAgent(AgentConsole);
     } catch (e) {
@@ -286,7 +367,7 @@ export class AgentConnectix {
 
       const Termine = () => {
         estTermine = true;
-        clearTimeout(laMinuterie);
+        window.clearTimeout(laMinuterie);
         AgentConsole.stdout.removeListener('data', SurSortie);
         AgentConsole.stderr.removeListener('data', SurErreur);
       };
@@ -305,13 +386,13 @@ export class AgentConnectix {
 
       const SurSortie = (donnees: Buffer) => {
         laSortie += donnees.toString('utf8');
-        let debut = laSortie.indexOf('{');
+        const debut = laSortie.indexOf('{');
         if (debut === -1) return;
 
         let lesReglages: ReglagesAgent;
         try {
-          lesReglages = JSON.parse(laSortie.substring(debut));
-        } catch (e) {
+          lesReglages = JSON.parse(laSortie.substring(debut)) as ReglagesAgent;
+        } catch {
           // The answer is truncated: wait for the rest of it.
           return;
         }
@@ -322,7 +403,7 @@ export class AgentConnectix {
         lesErreurs += donnees.toString('utf8');
       };
 
-      const laMinuterie = setTimeout(
+      const laMinuterie = window.setTimeout(
         () => Echoue(Error('Connectix Agent did not answer')),
         DELAI_REPONSE_AGENT_MS
       );
@@ -332,10 +413,10 @@ export class AgentConnectix {
       AgentConsole.on('error', Echoue);
       AgentConsole.stdin.on('error', Echoue);
       AgentConsole.on('close', (code: number | null) => {
-        let laRaison = lesErreurs.trim();
+        const laRaison = lesErreurs.trim();
         Echoue(
           Error(
-            `Connectix Agent stopped before answering (code ${code})` +
+            `Connectix Agent stopped before answering (code ${String(code)})` +
               (laRaison === '' ? '' : `: ${laRaison}`)
           )
         );

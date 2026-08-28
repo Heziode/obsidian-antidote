@@ -81,8 +81,9 @@ async function readFromPropertyList(
   const file = `${homedir()}/Library/Preferences/${domain}.plist`;
   if (!existsSync(file)) return '';
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const parser = require('bplist-parser');
+  // Loaded on demand: this fallback only ever runs on macOS, and only when the
+  // preferences daemon could not be reached.
+  const parser = (await import('bplist-parser')).default;
   parser.maxObjectCount = Math.max(
     parser.maxObjectCount,
     MAX_PLIST_OBJECT_COUNT
