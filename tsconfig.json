@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "incremental": true,
+    "skipLibCheck": true,
     "target": "ES6",
     "outDir": "build/main",
     "rootDir": "src",
