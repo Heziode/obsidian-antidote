@@ -1,3 +1,39 @@
+# 2.3.0 (Fri Aug 28 2026)
+
+**This release requires Obsidian 1.13.0 or higher.** `minAppVersion` had claimed 0.15.0 since 2022 while the plugin moved on without it: 2.2.0 already fails on anything older than 1.7.2. Obsidian only ever offers you the newest release your app supports, so an older Obsidian keeps the version it has.
+
+#### 🚀 Enhancement
+
+- feat: move the settings tab to the declarative settings API ([@Heziode](https://github.com/Heziode))
+
+#### 🐛 Bug Fix
+
+- fix: declare the Obsidian version the plugin actually requires ([@Heziode](https://github.com/Heziode))
+- fix: reassemble Connectix messages split over several packets ([@Heziode](https://github.com/Heziode))
+- fix: read WebSocket frames that arrive as an array buffer ([@Heziode](https://github.com/Heziode))
+- fix: stop assuming a vault keeps its configuration in .obsidian ([@Heziode](https://github.com/Heziode))
+- fix: declare @types/node and keep the lockfile in sync ([@Heziode](https://github.com/Heziode))
+
+#### 🏠 Internal
+
+- refactor: describe the Connectix protocol with types instead of any ([@Heziode](https://github.com/Heziode))
+- refactor: reach the vault through supported, non-deprecated APIs ([@Heziode](https://github.com/Heziode))
+- style: colour the status bar by specificity instead of !important ([@Heziode](https://github.com/Heziode))
+- build: lint with the rules the Obsidian team runs against plugins ([@Heziode](https://github.com/Heziode))
+- build: bundle with esbuild directly and drop the unused template tooling ([@Heziode](https://github.com/Heziode))
+- ci: build, attest and publish releases from a workflow ([@Heziode](https://github.com/Heziode))
+
+#### 📝 Documentation
+
+- docs: describe the new development workflow ([@Heziode](https://github.com/Heziode))
+- docs: fix two typos in the contributing guide ([@Heziode](https://github.com/Heziode))
+
+#### Authors: 1
+
+- Quentin Dauprat ([@Heziode](https://github.com/Heziode))
+
+---
+
 # 2.2.0 (Tue Aug 18 2026)
 
 #### 🚀 Enhancement
