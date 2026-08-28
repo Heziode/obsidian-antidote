@@ -27,6 +27,8 @@ jobs:
 
       - run: npm run test:prettier
 
-      - run: npx tsc --noEmit -p tsconfig.json
+      - run: npm run test:types
+
+      - run: npm run test:spelling
 
       - run: npm run build
