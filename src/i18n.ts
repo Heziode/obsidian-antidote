@@ -1,15 +1,32 @@
 import { I18n as I18nJS, TranslateOptions } from 'i18n-js';
-import set from 'lodash.set';
 import { moment } from 'obsidian';
 
 import { LANGS, LangType, TransItemType } from './translations';
 
 export type Scope = TransItemType | TransItemType[];
 
-function flatToNestedObject(target: Record<string, unknown>) {
-  const nested = {};
+/**
+ * Turn `{ 'a.b': 'x' }` into `{ a: { b: 'x' } }`: translation files store their
+ * keys flat, while the i18n library looks them up through nested objects.
+ */
+function flatToNestedObject(
+  target: Record<string, unknown>
+): Record<string, unknown> {
+  const nested: Record<string, unknown> = {};
 
-  Object.keys(target).forEach((path) => set(nested, path, target[path]));
+  for (const [path, value] of Object.entries(target)) {
+    const keys = path.split('.');
+    const leaf = keys[keys.length - 1];
+
+    let node = nested;
+    for (const key of keys.slice(0, -1)) {
+      const child = node[key];
+      node[key] = typeof child === 'object' && child !== null ? child : {};
+      node = node[key] as Record<string, unknown>;
+    }
+
+    node[leaf] = value;
+  }
 
   return nested;
 }

@@ -1,12 +1,13 @@
-import { EditorView } from '@codemirror/view';
 import {
   App,
+  Editor,
   MarkdownView,
   Notice,
   Plugin,
   PluginSettingTab,
   setIcon,
   Setting,
+  SettingDefinitionItem,
   WorkspaceLeaf,
 } from 'obsidian';
 
@@ -18,8 +19,23 @@ import {
   AgentConnectix,
   AgentIntrouvable,
 } from './lib/antidote/AgentConnectix';
+import { TransItemType } from './translations';
 
 const AcMap: WeakMap<MarkdownView, AgentConnectix> = new WeakMap();
+
+/**
+ * Obsidian hands out the CodeMirror view backing an editor outside of its
+ * public API. Only the line separator of the document is read from it.
+ */
+interface EditeurAvecCodeMirror {
+  cm?: { state?: { lineBreak?: string } };
+}
+
+/** Line separator the document is written with, `\n` unless CodeMirror says otherwise. */
+function DonneRetourDeCharriot(editor: Editor): string {
+  const cm = (editor as Editor & EditeurAvecCodeMirror).cm;
+  return cm?.state?.lineBreak ?? '\n';
+}
 
 /**
  * Tell the user why a command could not reach Antidote. Not having Antidote
@@ -39,28 +55,25 @@ function DonneAgentConnectixPourDocument(
   td: MarkdownView,
   checkWholeDocument = false
 ): AgentConnectix {
-  if (td?.getMode() === 'source') {
-    if (!AcMap.has(td)) {
-      AcMap.set(
-        td,
-        new AgentConnectix(
-          new AgentTexteurAPI(
-            td,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ((td.editor as any).cm as EditorView).state.lineBreak,
-            checkWholeDocument
-          )
-        )
-      );
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return AcMap.get(td)!;
+  if (td.getMode() !== 'source') {
+    throw Error('Unknown document');
   }
-  throw Error('Unknown document');
-}
 
-// Remember to rename these classes and interfaces!
+  let agent = AcMap.get(td);
+
+  if (agent === undefined) {
+    agent = new AgentConnectix(
+      new AgentTexteurAPI(
+        td,
+        DonneRetourDeCharriot(td.editor),
+        checkWholeDocument
+      )
+    );
+    AcMap.set(td, agent);
+  }
+
+  return agent;
+}
 
 interface AntidotePluginSettings {
   showCorrectorAllIcon: boolean;
@@ -75,6 +88,48 @@ const DEFAULT_SETTINGS: AntidotePluginSettings = {
   showDictionaryIcon: true,
   showGuideIcon: true,
 };
+
+/** A status bar icon the user can turn on and off, and the setting behind it. */
+interface IconeReglable {
+  cle: keyof AntidotePluginSettings;
+  titre: TransItemType;
+}
+
+/** The status bar icons the user can turn on and off, in display order. */
+const ICONES_REGLABLES: readonly IconeReglable[] = [
+  { cle: 'showCorrectorAllIcon', titre: 'settings.corrector_all.title' },
+  { cle: 'showCorrectorIcon', titre: 'settings.corrector.title' },
+  { cle: 'showDictionaryIcon', titre: 'settings.dictionary.title' },
+  { cle: 'showGuideIcon', titre: 'settings.guide.title' },
+];
+
+/** Where a donation button points, and the artwork drawn on it. */
+const LES_DONS = [
+  { lien: 'https://paypal.me/foetools', image: paypal },
+  { lien: 'https://www.buymeacoffee.com/Heziode', image: buyMeACoffee },
+] as const;
+
+/**
+ * Turn a setting row into the donation row. Shared by the declarative settings
+ * of Obsidian 1.13 and the imperative fallback used by older versions.
+ */
+function AfficheLesDons(setting: Setting): void {
+  setting
+    .setName(t('settings.donation.title'))
+    .setDesc(t('settings.donation.text'));
+
+  const parser = new DOMParser();
+
+  for (const don of LES_DONS) {
+    const bouton = setting.controlEl.createEl('a', {
+      cls: 'donate-button',
+      href: don.lien,
+    });
+    bouton.appendChild(
+      parser.parseFromString(don.image, 'text/xml').documentElement
+    );
+  }
+}
 
 export default class AntidotePlugin extends Plugin {
   isloading = false;
@@ -97,7 +152,7 @@ export default class AntidotePlugin extends Plugin {
         return;
       }
 
-      this.handleCorrecteur(true);
+      void this.handleCorrecteur(true);
     });
 
     // corrector
@@ -108,7 +163,7 @@ export default class AntidotePlugin extends Plugin {
         return;
       }
 
-      this.handleCorrecteur();
+      void this.handleCorrecteur();
     });
 
     // dictionary
@@ -131,7 +186,7 @@ export default class AntidotePlugin extends Plugin {
         return;
       }
 
-      this.handleDictionnaire();
+      void this.handleDictionnaire();
     });
 
     // guides
@@ -153,31 +208,34 @@ export default class AntidotePlugin extends Plugin {
         return;
       }
 
-      this.handleDictionnaire();
+      void this.handleGuide();
     });
 
-    app.workspace.onLayoutReady(() => {
+    this.app.workspace.onLayoutReady(() => {
       this.showOrHideIcons();
     });
 
     // Events //
 
     this.registerEvent(
-      app.workspace.on('active-leaf-change', (leaf: WorkspaceLeaf | null) => {
-        if (
-          leaf?.view instanceof MarkdownView &&
-          leaf.view.getMode() === 'source'
-        ) {
-          this.showStatusBarIcons();
-        } else {
-          this.hideStatusBarIcons();
+      this.app.workspace.on(
+        'active-leaf-change',
+        (leaf: WorkspaceLeaf | null) => {
+          if (
+            leaf?.view instanceof MarkdownView &&
+            leaf.view.getMode() === 'source'
+          ) {
+            this.showStatusBarIcons();
+          } else {
+            this.hideStatusBarIcons();
+          }
         }
-      })
+      )
     );
 
     this.registerEvent(
-      app.workspace.on('layout-change', () => {
-        const mdView = app.workspace.getActiveViewOfType(MarkdownView);
+      this.app.workspace.on('layout-change', () => {
+        const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
         if (mdView?.getMode() === 'source') {
           this.showStatusBarIcons();
@@ -197,7 +255,7 @@ export default class AntidotePlugin extends Plugin {
           return;
         }
 
-        this.handleCorrecteur(true);
+        void this.handleCorrecteur(true);
       },
     });
 
@@ -209,7 +267,7 @@ export default class AntidotePlugin extends Plugin {
           return;
         }
 
-        this.handleCorrecteur();
+        void this.handleCorrecteur();
       },
     });
 
@@ -221,7 +279,7 @@ export default class AntidotePlugin extends Plugin {
           return;
         }
 
-        this.handleDictionnaire();
+        void this.handleDictionnaire();
       },
     });
 
@@ -233,7 +291,7 @@ export default class AntidotePlugin extends Plugin {
           return;
         }
 
-        this.handleGuide();
+        void this.handleGuide();
       },
     });
 
@@ -242,7 +300,7 @@ export default class AntidotePlugin extends Plugin {
   }
 
   public showOrHideIcons() {
-    const mdView = app.workspace.getActiveViewOfType(MarkdownView);
+    const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
     const isDocumentFocus = mdView?.getMode() === 'source';
 
@@ -329,7 +387,14 @@ export default class AntidotePlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    // What was persisted may predate the settings of this version: read it as a
+    // partial and let the defaults fill in whatever is missing.
+    const enregistre = (await this.loadData()) as
+      | Partial<AntidotePluginSettings>
+      | null
+      | undefined;
+
+    this.settings = { ...DEFAULT_SETTINGS, ...enregistre };
   }
 
   async saveSettings() {
@@ -402,99 +467,34 @@ class SettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
-  display(): void {
-    const { containerEl } = this;
+  /**
+   * Declarative settings, so that Obsidian renders them and, above all, finds
+   * them through the settings search. Replaces `display()`, which Obsidian
+   * ignores as soon as this answers a non-empty array.
+   */
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    return [
+      ...ICONES_REGLABLES.map((icone) => ({
+        name: t(icone.titre),
+        control: {
+          type: 'toggle' as const,
+          key: icone.cle,
+          defaultValue: DEFAULT_SETTINGS[icone.cle],
+        },
+      })),
+      {
+        name: t('settings.donation.title'),
+        desc: t('settings.donation.text'),
+        render: (setting: Setting) => {
+          AfficheLesDons(setting);
+        },
+      },
+    ];
+  }
 
-    containerEl.empty();
-    containerEl.addClass('antidote-settings');
-
-    const summary = containerEl.createEl('summary');
-    new Setting(summary).setHeading().setName(t('settings.title'));
-    summary.createDiv('collapser').createDiv('handle');
-
-    new Setting(containerEl)
-      .setName(t('settings.corrector_all.title'))
-      .addToggle((t) => {
-        t.setValue(this.plugin.settings.showCorrectorAllIcon).onChange(
-          async (value) => {
-            this.plugin.settings.showCorrectorAllIcon = value;
-            await this.plugin.saveSettings();
-            this.plugin.showOrHideIcons();
-          }
-        );
-      });
-
-    new Setting(containerEl)
-      .setName(t('settings.corrector.title'))
-      .addToggle((t) => {
-        t.setValue(this.plugin.settings.showCorrectorIcon).onChange(
-          async (value) => {
-            this.plugin.settings.showCorrectorIcon = value;
-            await this.plugin.saveSettings();
-            this.plugin.showOrHideIcons();
-          }
-        );
-      });
-
-    new Setting(containerEl)
-      .setName(t('settings.dictionary.title'))
-      .addToggle((t) => {
-        t.setValue(this.plugin.settings.showDictionaryIcon).onChange(
-          async (value) => {
-            this.plugin.settings.showDictionaryIcon = value;
-            await this.plugin.saveSettings();
-            this.plugin.showOrHideIcons();
-          }
-        );
-      });
-
-    new Setting(containerEl)
-      .setName(t('settings.guide.title'))
-      .addToggle((t) => {
-        t.setValue(this.plugin.settings.showGuideIcon).onChange(
-          async (value) => {
-            this.plugin.settings.showGuideIcon = value;
-            await this.plugin.saveSettings();
-            this.plugin.showOrHideIcons();
-          }
-        );
-      });
-
-    const section = containerEl.createEl('section', {
-      cls: 'donation-section',
-    });
-
-    const donateText = document.createElement('p');
-    donateText.appendText(t('settings.donation'));
-    section.appendChild(donateText);
-
-    const parser = new DOMParser();
-
-    const div = containerEl.createEl('div');
-    div.addClass('antidote-settings-donation');
-
-    div.appendChild(
-      createDonateButton(
-        'https://paypal.me/foetools',
-        parser.parseFromString(paypal, 'text/xml').documentElement
-      )
-    );
-
-    div.appendChild(
-      createDonateButton(
-        'https://www.buymeacoffee.com/Heziode',
-        parser.parseFromString(buyMeACoffee, 'text/xml').documentElement
-      )
-    );
-
-    section.appendChild(div);
+  /** Keep the status bar in step with a setting the user just changed. */
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    await super.setControlValue(key, value);
+    this.plugin.showOrHideIcons();
   }
 }
-
-const createDonateButton = (link: string, img: HTMLElement): HTMLElement => {
-  const a = document.createElement('a');
-  a.setAttribute('href', link);
-  a.addClass('donate-button');
-  a.appendChild(img);
-  return a;
-};
