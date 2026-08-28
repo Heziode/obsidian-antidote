@@ -27,6 +27,7 @@
     "@eslint-community/eslint-plugin-eslint-comments": "^4.7.2",
     "@eslint/js": "^9.39.5",
     "@eslint/json": "^0.14.0",
+    "@types/node": "^22.20.1",
     "@types/ws": "^8.18.1",
     "auto": "^11.3.6",
     "bplist-parser": "^0.3.2",
