@@ -1,5 +1,3 @@
-import { parse as parseURL } from 'url';
-
 import {
   EditorPosition,
   EditorSelection,
@@ -28,13 +26,14 @@ export class AgentTexteurAPI extends AgentTexteur {
     super();
 
     this.mdView = mdView;
-    this.documentPath = mdView.file.path;
+    this.documentPath = mdView.file?.path ?? '';
     this.lineBreak = lineBreak;
     this.checkWholeDocument = checkWholeDocument;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  Initialise(): void {}
+  Initialise(): void {
+    // The editor is already there: nothing to set up.
+  }
 
   private PositionAbsolue(pos: EditorPosition): number {
     return this.mdView.editor.posToOffset(pos);
@@ -49,35 +48,41 @@ export class AgentTexteurAPI extends AgentTexteur {
   }
 
   DonneTitreDocument(): string {
-    return this.mdView.file.name;
+    return this.mdView.file?.name ?? '';
   }
 
   DonneCheminDocument(): string {
-    return decodeURIComponent(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      parseURL(this.mdView.app.vault.getResourcePath(this.mdView.file))
-        .pathname!
-    );
+    const file = this.mdView.file;
+    if (file === null) return '';
+
+    // The resource path is an `app://<host>/<file system path>?<mtime>` URL:
+    // only its path component names the file on disk.
+    const resource = new URL(this.mdView.app.vault.getResourcePath(file));
+    return decodeURIComponent(resource.pathname);
   }
 
   DonneTypeDocument(): typeDocument | undefined {
-    if (['tex'].includes(this.mdView.file.extension)) {
+    const extension = this.mdView.file?.extension;
+
+    if (extension === undefined) {
+      return undefined;
+    }
+
+    if (['tex'].includes(extension)) {
       return 'latex';
     }
 
     if (
-      ['markdown', 'mdown', 'mkdn', 'mkd', 'mdwn', 'md'].includes(
-        this.mdView.file.extension
-      )
+      ['markdown', 'mdown', 'mkdn', 'mkd', 'mdwn', 'md'].includes(extension)
     ) {
       return 'markdown';
     }
 
-    if (['srt'].includes(this.mdView.file.extension)) {
+    if (['srt'].includes(extension)) {
       return 'subrip';
     }
 
-    if (['txt', 'text', 'texte'].includes(this.mdView.file.extension)) {
+    if (['txt', 'text', 'texte'].includes(extension)) {
       return 'texte';
     }
 
@@ -158,7 +163,6 @@ export class AgentTexteurAPI extends AgentTexteur {
     leDebut: number,
     laFin: number,
     laChaine: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _automatique: boolean
   ): Promise<boolean> {
     const posDebut: EditorPosition = this.PositionObsidian(leDebut);
@@ -174,24 +178,28 @@ export class AgentTexteurAPI extends AgentTexteur {
   }
 
   MetsFocusSurLeDocument(): void {
-    let previousLeaf: WorkspaceLeaf | boolean = false;
+    // Collected rather than assigned to a local: a variable written from inside
+    // the callback would defeat the type narrowing of the check below.
+    const feuillesDuDocument: WorkspaceLeaf[] = [];
 
     this.mdView.app.workspace.iterateAllLeaves((leaf) => {
       if (leaf.view === this.mdView) {
-        previousLeaf = leaf;
+        feuillesDuDocument.push(leaf);
       }
     });
 
-    if (previousLeaf) {
-      this.mdView.app.workspace.revealLeaf(previousLeaf);
+    const feuilleExistante = feuillesDuDocument[0];
+    if (feuilleExistante !== undefined) {
+      void this.mdView.app.workspace.revealLeaf(feuilleExistante);
       return;
     }
 
-    const file = this.mdView.app.vault.getAbstractFileByPath(
-      this.documentPath
-    ) as TFile;
+    const file = this.mdView.app.vault.getAbstractFileByPath(this.documentPath);
+    if (!(file instanceof TFile)) {
+      return;
+    }
 
-    this.mdView.app.workspace.getLeaf(true).openFile(file);
+    void this.mdView.app.workspace.getLeaf(true).openFile(file);
   }
 
   SelectionneIntervalle(_leIDZone: string, debut: number, fin: number): void {
