@@ -8,4 +8,4 @@ It is highly recommended to de tests into a "Sandbox" Obsidian vault, either the
 
 Inside this vault, install [Hot-Reload](https://github.com/pjeby/hot-reload) plugin in order to enhance your development experience.
 
-You can now run `npm run dev` to start developping. This command will ask you which vault you want to install de development plugin. Choose the sandbox vault as described above.
+You can now run `npm run dev` to start developing. This command will ask you which vault you want to install the development plugin. Choose the sandbox vault as described above.
