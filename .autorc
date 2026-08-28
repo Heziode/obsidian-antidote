@@ -17,12 +17,6 @@
       {
         "preset": "angular"
       }
-    ],
-    [
-      "obsidian",
-      {
-        "dir": "./dist"
-      }
     ]
   ]
 }

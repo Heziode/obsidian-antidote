@@ -1,6 +1,6 @@
 {
-  "settings.title": "Paramètres d'Antidote",
-  "settings.donation": "Si ce plugin vous est utile, vous pouvez aider à soutenir le mainteneur en utilisant un des boutons ci-dessous :",
+  "settings.donation.title": "Soutenir le mainteneur",
+  "settings.donation.text": "Si ce plugin vous est utile, vous pouvez aider à soutenir le mainteneur en utilisant un des boutons ci-dessous :",
   "settings.corrector.title": "Ajouter le bouton Correcteur",
   "settings.corrector_all.title": "Ajouter le bouton Correcteur : corriger tout le document",
   "settings.dictionary.title": "Ajouter le bouton Dictionnaire",

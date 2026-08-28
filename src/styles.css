@@ -1,53 +1,19 @@
-.spin-loading > svg {
-  animation-name: spin;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
+/*
+ * Specific enough to override the colours Obsidian gives a clickable status bar
+ * item, hover included, without reaching for `!important`.
+ */
+.status-bar-item.mod-clickable.antidote-green,
+.status-bar-item.mod-clickable.antidote-green:hover {
+  color: var(--color-green);
 }
 
-.antidote-green {
-  color: var(--color-green) !important;
-}
-
-.antidote-orange {
-  color: var(--color-orange) !important;
-}
-
-.antidote-settings-donation {
-  display: flex;
-  margin-top: 2em;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+.status-bar-item.mod-clickable.antidote-orange,
+.status-bar-item.mod-clickable.antidote-orange:hover {
+  color: var(--color-orange);
 }
 
 .hide {
   display: none;
-}
-
-.antidote-settings > .setting-item {
-  border: 0px;
-  padding-bottom: 0;
-}
-
-.antidote-settings summary {
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.donation-section {
-  width: 70%;
-  margin: 0 auto;
-  text-align: center;
-  margin-top: 2em;
-  padding-top: 2em;
-  border-top: 1px solid var(--background-modifier-border);
 }
 
 .donate-button {
